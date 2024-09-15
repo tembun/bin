@@ -1,0 +1,6 @@
+#!/usr/bin/sh
+#gource alias.
+av="./.git/.avatar"
+avo=""
+if [ -d "$av" ];then avo="--user-image-dir $av";fi
+gource --hide bloom,filenames --seconds-per-day 0.4 -a 2 $avo

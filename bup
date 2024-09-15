@@ -1,0 +1,25 @@
+#!/bin/sh
+tar\
+ --exclude='/boot/grub/grub.cfg'\
+ --exclude='/etc/fstab'\
+ --exclude='/tmp'\
+ --exclude='/mnt'\
+ --exclude='/sys'\
+ --exclude='/dev'\
+ --exclude='/proc'\
+ --exclude='/run'\
+ --exclude='/var/tmp'\
+ --exclude='/var/cache'\
+ --exclude='/var/local'\
+ --exclude='/var/opt'\
+ --exclude='/var/log'\
+ --exclude='.fetchmail.pid'\
+ --exclude='dead.letter'\
+ --exclude='/home/artembunichev/.cache'\
+ --exclude='.npm'\
+ --exclude='node_modules'\
+ --exclude='.mozilla'\
+ --exclude='/home/artembunichev/.config/chromium/**/Cache'\
+ --exclude='/home/artembunichev/.config/chromium/**/CacheStorage'\
+ --exclude='/home/artembunichev/dev/wsv/m3t'\
+ -cJvf /tmp/bup.txz / |tee /tmp/bup.log
