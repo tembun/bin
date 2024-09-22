@@ -1,0 +1,5 @@
+#!/bin/sh
+cdev="$1"
+unit=$(echo "$cdev" |sed 's/.*\.//')
+/usr/local/etc/rc.d/webcamd start "$cdev" 2>/dev/null &
+sysctl hw.snd.default_unit="$unit"
