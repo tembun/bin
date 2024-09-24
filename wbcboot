@@ -1,0 +1,12 @@
+#!/bin/sh
+#check if webcam usb device in connected at boot time.
+devs=$(dmesg |grep "ugen.*" |sed "s/:.*//" |uniq)
+for dev in $devs;do
+	if [ -z $dev ]; then break; fi
+	mtchlins=$(usbconfig -d $dev dump_device_desc |grep "bDeviceClass = 0x00ef" |wc -l)
+	if [ $mtchlins -ne "0" ];then
+		wbc=$dev
+	fi
+done
+if [ -z "wbc" ];then exit 0;fi
+/usr/local/sbin/wbccnct $wbc
