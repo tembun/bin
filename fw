@@ -1,0 +1,3 @@
+#!/bin/sh
+#get names of the files that contain pattern.
+grep -RIi "$1" "$2" |sed "s/:.*//" |uniq
