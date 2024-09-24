@@ -1,22 +1,42 @@
 #!/bin/sh
 #list file.
 #second argument is line number to jump to.
-jmp="$2"
+#works as pipe as well.
+
+#if manual input.
+if [ -t 0 ]
+	then
+		in="$1"
+		jmp="$2"
+		mod=1
+	else
+		jmp="$1"
+		mod=0
+fi
 if [ -z "$jmp" ];then
-less -FXf "$1"
+	if [ "$mod" = 0 ]
+	then less -FXfi
+	else less -FXfi "$in"
+	fi
 else
 	rowsterm=$(tput lines)
 	#use "awk" trick in order to handle
 	#cases when there is no newline
 	#terminator in the file.
-	rowstxt=$(awk "1" "$1"|wc -l)
+	rowstxt=$(awk "1" "$in"|wc -l)
 	res=$((jmp+rowsterm-1))
 	if [ $rowstxt -le $rowsterm ]; then
-		less -FXfN "$1"
+		if [ "$mod" = 0 ]
+			then less -FXfNi
+			else less -FXfNi "$in"
+		fi
 	else
 		if [ $res -gt $rowstxt ];then
 			jmp=$((rowstxt-rowsterm+2))
 		fi
-		less -FXfN "+$jmp" "$1"
+		if [ "$mod" = 0 ]
+			then less -FXfNi "+$jmp"
+			else less -FXfNi "+$jmp" "$in"
+		fi
 	fi
 fi
