@@ -1,0 +1,3 @@
+#!/bin/sh
+#list packages that were installed via ports(7).
+pkg query -a "%R %o" |grep "unknown-repository" |sed -e 's/unknown-repository //' |sort
