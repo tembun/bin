@@ -1,0 +1,3 @@
+#!/bin/sh
+#list packages that were installed via pkg(8).
+pkg query -a "%R %o" |sed '/^unknown-repository.*$/d' |sed 's/.* //' |sort
