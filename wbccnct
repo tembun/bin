@@ -1,4 +1,4 @@
 #!/bin/sh
 cdev="$1"
-/usr/local/etc/rc.d/webcamd start "$cdev" 2>/dev/null &
-sysctl hw.snd.default_unit=3
+/usr/local/etc/rc.d/webcamd onestart "$cdev" 2>/dev/null &
+/usr/local/sbin/virtual_oss -C 2 -c 2 -r 48000 -b 16 -s 16ms -P /dev/dsp0 -R /dev/dsp3 -d dsp -Q 0 &
