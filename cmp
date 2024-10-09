@@ -1,0 +1,14 @@
+#!/bin/sh
+#this is a script for compiling files for
+#C-language program.
+#execute it from the project's directory.
+srcs=$(find . -type f -name "*\.c")
+opts=""
+if [ -f o.cmp ]
+	then opts=$(cat o.cmp|perl -pe "s/\n/ /gm")
+fi
+for src in $srcs;do
+	out=$(echo "$src"|sed 's/\.c//')
+	cc -o "$out" "$src" -I/usr/local/include -L/usr/local/lib $opts &&\
+	echo "cmp: $src -> $out"
+done
