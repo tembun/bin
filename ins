@@ -1,0 +1,14 @@
+#!/bin/sh
+#this is a script for installing
+#C-sourced programs into /usr/local/bin directory.
+#invoke it as root user.
+outs=$(find . -type f -name "*\.c" |sed "s/\.c//")
+for out in $outs;do
+	if [ ! -f "$out" ];then
+		echo "ins: $out.c has no out file. not copied."
+	else
+		cp $out /usr/local/bin
+		bas=$(basename $out)
+		echo "ins: $bas -> /usr/local/bin/$bas"
+	fi
+done
