@@ -1,7 +1,5 @@
 #!/bin/sh
 tar\
- --exclude='/boot/grub/grub.cfg'\
- --exclude='/etc/fstab'\
  --exclude='/tmp'\
  --exclude='/mnt'\
  --exclude='/sys'\
