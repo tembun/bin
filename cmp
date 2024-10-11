@@ -10,5 +10,5 @@ fi
 for src in $srcs;do
 	out=$(echo "$src"|sed 's/\.c//')
 	cc -o "$out" "$src" -I/usr/local/include -L/usr/local/lib $opts &&\
-	echo "cmp: $src -> $out"
+	echo "cmp: $(basename $src) -> $(basename $out)"
 done
