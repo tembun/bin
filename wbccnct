@@ -1,4 +1,5 @@
 #!/bin/sh
 cdev="$1"
 /usr/local/etc/rc.d/webcamd onestart "$cdev" 2>/dev/null &
-/usr/local/sbin/virtual_oss -C 2 -c 2 -r 48000 -b 16 -s 16ms -P /dev/dsp0 -R /dev/dsp3 -d dsp -Q 0 &
+/usr/local/sbin/virtual_oss -C 2 -c 2 -r 48000 -b 16 -s 16ms -Q 0 -P /dev/dsp0 -R /dev/dsp3 -d dsp -t dsp.ctl &
+/usr/local/sbin/virtual_oss_cmd /dev/dsp.ctl -R /dev/dsp3
