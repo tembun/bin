@@ -1,11 +1,19 @@
 #!/bin/sh
 #this is a script for installing
 #C-sourced programs into /usr/local/bin directory.
+#if only a specific binary(ies) desired to be
+#installed, specify it's(their's) name(s)
+#as argument(s); otherwise, all available binaries
+#will be installed.
+#it's only 1-level depth.
 #invoke it as root user.
-outs=$(find . -type f -name "*\.c" |sed "s/\.c//")
+if [ "$#" -ne 0 ]
+then outs="$@"
+else outs=$(find . -type f -name "*\.c" -maxdepth 1 |sed "s/\.c//")
+fi
 for out in $outs;do
 	if [ ! -f "$out" ];then
-		echo "ins: $out.c has no out file. not copied."
+		echo "ins: $out.c has no out file. not copied." 1>&2
 	else
 		cp $out /usr/local/bin
 		bas=$(basename $out)
