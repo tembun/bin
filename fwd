@@ -1,0 +1,19 @@
+#!/bin/sh
+#this is a very simple script
+#that obtains the present working
+#directory (pwd) for currently focused
+#window. in fact, it looks for the
+#sh(1) process (the last one) under
+#the focused window and prints it's pwd.
+#it requires the `xii` utility to be
+#present in the system's PATH.
+
+xii=$(xii)
+pid=$(xprop -id "$xii"|grep _NET_WM_PID |sed 's/.*= //')
+ps -j \
+|grep "$pid" \
+|grep " sh$" \
+|tail -n1 \
+|cut -d ' ' -f2 \
+|xargs pwdx \
+|sed 's/.* //'
