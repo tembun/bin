@@ -9,6 +9,11 @@
 #present in the system's PATH.
 #also `xprop` we need.
 
+#you may find this script helpful
+#for opening a new terminal emulator
+#with your *current* terminal window
+#path opened. So do I with i3wm.
+
 xii=$(xii)
 pid=$(xprop -id "$xii"|grep _NET_WM_PID |sed 's/.*= //')
 ps -j \
