@@ -3,7 +3,7 @@
 bas="/home/artembunichev"
 dof=".dof"
 cd "$bas/$dof"
-kids=$(find . -type f|sed "s/^\.\///g")
+kids=$(find . -not -path "./.git/*" -type f|sed "s/^\.\///g")
 for kid in $kids;do
 mkdir -p $(dirname "$bas/$kid")
 ln -s -f "$bas/$dof/$kid" "$bas/$kid"
