@@ -2,7 +2,7 @@
 #a very simple infinite
 #loop for printing something
 #onto stdout.
-#I use it for auditing
+#I particularly use it for auditing
 #tty scrolling in xterm(1).
 
 while true;do
