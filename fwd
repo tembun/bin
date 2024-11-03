@@ -12,11 +12,12 @@
 #"hello" string into the `xsc` program.
 
 data="$1"
-com="$2"
+shift
+com="$@"
 
 if [ -z "$com" ];then
 	echo "fwd: specify a command to forward the data to." 1>&2
 	exit 1
 fi
 
-echo -n "$data" |"$com"
+echo -n "$data" |$com
