@@ -15,8 +15,8 @@ if [ -t 0 ]
 fi
 if [ -z "$jmp" ];then
 	if [ "$mod" = 0 ]
-	then less -FXfi
-	else less -FXfi "$in"
+	then less -FRXfi
+	else less -FRXfi "$in"
 	fi
 else
 	rowsterm=$(tput lines)
@@ -27,16 +27,16 @@ else
 	res=$((jmp+rowsterm-1))
 	if [ $rowstxt -le $rowsterm ]; then
 		if [ "$mod" = 0 ]
-			then less -FXfNi
-			else less -FXfNi "$in"
+			then less -FRXfNi
+			else less -FRXfNi "$in"
 		fi
 	else
 		if [ $res -gt $rowstxt ];then
 			jmp=$((rowstxt-rowsterm+2))
 		fi
 		if [ "$mod" = 0 ]
-			then less -FXfNi "+$jmp"
-			else less -FXfNi "+$jmp" "$in"
+			then less -FRXfNi "+$jmp"
+			else less -FRXfNi "+$jmp" "$in"
 		fi
 	fi
 fi
