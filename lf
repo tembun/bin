@@ -2,6 +2,8 @@
 #list file.
 #second argument is line number to jump to.
 #works as pipe as well.
+#consult less(1) manpage to find
+#out it's options meaning.
 
 #if manual input.
 if [ -t 0 ]
