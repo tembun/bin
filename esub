@@ -1,0 +1,19 @@
+#!/bin/sh
+#a shell script for extracting
+#an archive(zip(1) one) that
+#contains subtitles for a film.
+
+file="$1"
+if [ -z "$file" ];then
+	echo "esub: specify an archive file." 1>&2
+	exit 1
+fi
+
+unzip "$file" >/dev/null
+if [ $? -ne 0 ];then
+	exit
+fi
+
+rm -f *\.nfo
+mv *\.srt sub.srt &&\
+rm -f "$file"
