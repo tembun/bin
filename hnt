@@ -12,6 +12,12 @@
 #a second argument; it will print the content
 #of this entry respectively.
 
+#it may be pretty handy especially with
+#~/bin/url utility:
+#hnt ./hint 3 |url
+#(assuming both `hnt` and `url` are
+#in the PATH).
+
 my $file = $ARGV[0];
 my $getidx = $ARGV[1];
 my $getmod = $getidx ne "";
