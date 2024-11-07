@@ -1,0 +1,55 @@
+#!/usr/local/bin/perl
+
+#hint -- a script for printing
+#out a contents of a file with hints
+#or show the content of a hint
+#entry by the specified index 
+#(which the first invoke-form produces).
+#takes a hint filename as a first argument.
+#without any further arguments passed,
+#it outputs the overall contents of a file.
+#otherwise, it expects an entry number as
+#a second argument; it will print the content
+#of this entry respectively.
+
+my $file = $ARGV[0];
+my $getidx = $ARGV[1];
+my $getmod = $getidx ne "";
+
+if($getidx eq 0) {
+	die "$0: hint entry index can't be 0.\n";
+}
+
+open(FILE, $file) || die "$0: Can't open $file: $!\n";
+
+my %table;
+my $title;
+my $idx = 0;
+while(chomp(my $line = <FILE>)) {
+	my $frstch = substr($line, 0,1);
+	if ($frstch eq "") {next};
+	if ($frstch ne "\t") {
+		if ($getmod && $getidx == $idx) {
+			print "$table{$title}\n";
+			exit 0;
+		}
+		++$idx;
+		$title = $line;
+		if (!$getmod) {
+			print "$idx: $title\n";
+		}
+		$table{$title} = "";
+	} else {
+		$line =~ s/^[\t]*//m;
+		$table{$title} .= $line;
+	}
+}
+
+if ($getmod) {
+	if ($getidx != $idx) {
+		die "$0: wrong hint entry number specified.\n";
+	}
+	else {
+		print "$table{$title}\n";
+	}
+}
