@@ -1,5 +1,9 @@
 #!/bin/sh
+
 #gp-git push script for my repositories.
+
+#it pushes current branch
+#changes to all the remote refs.
 
 if [ ! -d .git ];then
 	echo "gp: not a git repository." 1>&2
