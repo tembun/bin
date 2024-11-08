@@ -1,6 +1,6 @@
 #!/bin/sh
 #place dot files.
-bas="/home/artembunichev"
+bas="$HOME"
 dof=".dof"
 cd "$bas/$dof"
 kids=$(find . -not -path "./.git/*" -type f|sed "s/^\.\///g")
