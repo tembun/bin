@@ -1,0 +1,16 @@
+#!/bin/sh
+
+#another script of mine that
+#starts an xboard(6) and also
+#places i3(1) windows in this order:
+#left -- the board itself,
+#right -- a parent terminal for
+#entering input to a server (FICS, in my case).
+
+(
+/usr/local/bin/i3-msg 'split h' >/dev/null 2>&1
+sleep 0.08 &&\
+/usr/local/bin/i3-msg 'move left' >/dev/null 2>&1
+) &
+
+/usr/local/bin/xboard
