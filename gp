@@ -6,4 +6,13 @@ if [ ! -d .git ];then
 	exit 1
 fi
 
-git push sh m&git push gh m
+if [ ! -d .git/refs/remotes ];then
+	echo "gp: a repo doesn't have remote refs." 1>&2
+	exit 1
+fi
+
+rems=$(ls .git/refs/remotes)
+
+for rem in $rems;do
+	git push $rem m &
+done
