@@ -19,6 +19,11 @@
 #in the PATH).
 
 my $file = $ARGV[0];
+
+if (!$file) {
+	system("ls *.hnt |sed 's/\.hnt//' |column");
+	exit 0;
+}
 my $getidx = $ARGV[1];
 my $getmod = $getidx ne "";
 
