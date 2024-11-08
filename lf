@@ -8,6 +8,11 @@
 #if manual input.
 if [ -t 0 ]
 	then
+		if [ -z "$1" ];then
+			echo "lf: specify a file to list." 1>&2
+			exit 1
+		fi
+
 		in="$1"
 		jmp="$2"
 		mod=1
