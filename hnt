@@ -24,6 +24,9 @@ if (!$file) {
 	system("ls *.hnt |sed 's/\.hnt//' |column");
 	exit 0;
 }
+
+! -f $file and $file .= ".hnt";
+
 my $getidx = $ARGV[1];
 my $getmod = $getidx ne "";
 
