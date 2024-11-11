@@ -9,7 +9,7 @@ elif [ -z "$com" ];then
 	echo "mdf: specify a command to modify file with (2'd arg)." 1>&2
 	exit 1
 fi
-tmpf="/tmp/$file.tmp"
+tmpf="/tmp/$(basename $file).tmp"
 {
 $com <"$file" >$tmpf &&\
 mv $tmpf "$file"
