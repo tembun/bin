@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# udiff -- a script for eliminating the indicators (+ or -)
+# left by git-diff(1).
+
+sed 's/^[+-\s]//'
