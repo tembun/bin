@@ -16,7 +16,7 @@ if [ -z "$srcs" ];then
 fi
 opts=""
 if [ -f o.cmp ]
-	then opts=$(cat o.cmp|perl -pe "s/\n/ /gm")
+	then opts=$(cat o.cmp |tr "\n" " ")
 fi
 for src in $srcs;do
 	if [ ! -f "$src" ];then
