@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# fcore -- locate core(5) files across the system.
+
+
+find / -type f -name "*\.core" 2>/dev/null
