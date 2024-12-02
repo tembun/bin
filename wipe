@@ -1,5 +1,0 @@
-#!/bin/sh
-
-# wipe -- empty file(s) contents without deleting the file(s) itself.
-
-truncate -s 0 "$@"
