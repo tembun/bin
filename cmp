@@ -11,7 +11,7 @@ then srcs=$(echo "$@"|sed 's/$/\.c/')
 else srcs=$(find . -type f -name "*\.c" -maxdepth 1)
 fi
 if [ -z "$srcs" ];then
-	echo "cmp: nothing to compile." 1>&2
+	echo "[cmp]: nothing to compile." 1>&2
 	exit 1
 fi
 opts=""
@@ -20,10 +20,10 @@ if [ -f o.cmp ]
 fi
 for src in $srcs;do
 	if [ ! -f "$src" ];then
-		echo "cmp: no such file: $src." 1>&2
+		echo "[cmp]: no such file: $src." 1>&2
 		exit 1
 	fi
 	out=$(echo "$src"|sed 's/\.c//')
 	cc -o "$out" "$src" -I/usr/local/include -L/usr/local/lib $opts &&\
-	echo "cmp: $(basename $src) -> $(basename $out)"
+	echo "[cmp]: $(basename $src) -> $(basename $out)"
 done

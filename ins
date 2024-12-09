@@ -13,10 +13,10 @@ else outs=$(find . -type f -name "*\.c" -maxdepth 1 |sed "s/\.c//")
 fi
 for out in $outs;do
 	if [ ! -f "$out" ];then
-		echo "ins: $out.c has no out file. not copied." 1>&2
+		echo "[ins]: $out.c has no out file. not copied." 1>&2
 	else
 		cp $out /usr/local/bin
 		bas=$(basename $out)
-		echo "ins: $bas -> /usr/local/bin/$bas"
+		echo "[ins]: $bas -> /usr/local/bin/$bas"
 	fi
 done
