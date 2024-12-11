@@ -6,6 +6,6 @@
 #tty scrolling in xterm(1).
 
 while true;do
-	echo "out: $(date)."
+	echo "[out]: $(date)."
 	sleep 1
 done
