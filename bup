@@ -12,7 +12,7 @@ tar\
  --exclude='/var/opt'\
  --exclude='/var/log'\
  --exclude='/usr/obj'\
- --exclude='.fetchmail.pid'\
+ --exclude='/usr/lib/debug'\
  --exclude='dead.letter'\
  --exclude='/home/artembunichev/.cache'\
  --exclude='.npm'\
