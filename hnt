@@ -71,7 +71,7 @@ my sub append_mode {
 
 my sub read_mode {
 	if(not $append_mode and $getidx eq 0) {
-		die "$0: hint entry index can't be 0.\n";
+		die "[hnt]: hint entry index can't be 0.\n";
 	}
 	
 	open(FILE, $file) || die "[hnt]: Can't open $file: $!\n";
@@ -101,7 +101,7 @@ my sub read_mode {
 	
 	if ($getmod) {
 		if ($getidx != $idx) {
-			die "$0: wrong hint entry number specified.\n";
+			die "[hnt]: wrong hint entry number specified.\n";
 		}
 		else {
 			print "$table{$title}\n";
