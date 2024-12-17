@@ -6,18 +6,18 @@
 #changes to all the remote refs.
 
 if [ ! -d .git ];then
-	echo "gp: not a git repository." 1>&2
+	echo "[gp]: not a git repository." 1>&2
 	exit 1
 fi
 
 if [ ! -f .git/HEAD ]\
  || [ -z "$(cat .git/HEAD)" ];then
-	echo "gp: a repo has no HEAD." 1>&2
+	echo "[gp]: a repo has no HEAD." 1>&2
 	exit 1
 fi
 
 if [ ! -d .git/refs/remotes ];then
-	echo "gp: a repo doesn't have remote refs." 1>&2
+	echo "[gp]: a repo doesn't have remote refs." 1>&2
 	exit 1
 fi
 
