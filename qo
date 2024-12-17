@@ -1,5 +1,6 @@
 #!/bin/sh
 
-# quote a passage from email/Internet conversation.
+# qo -- quote a passage from email/Internet conversation.
+
 
 sed 's/^/> /'
