@@ -1,8 +1,8 @@
 #!/bin/sh
 
-# can -- named cat.
+# can -- named cat(1).
 #
-# cat(1), but also print file names.
+# cat(1) files, but also print their names.
 # I consider it solely as visual tool.
 
 
