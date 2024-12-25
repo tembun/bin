@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# can -- named cat.
+#
+# cat(1), but also print file names.
+# I consider it solely as visual tool.
+
+
+for file in "$@";do
+	echo "[$file]:"
+	cat "$file"
+	echo
+done
