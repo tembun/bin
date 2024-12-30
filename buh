@@ -9,4 +9,4 @@ tar\
  --exclude='.config/chromium/**/Cache'\
  --exclude='.config/chromium/**/CacheStorage'\
  --exclude='/home/artembunichev/dev/wsv/m3t'\
- -cJvf /tmp/hom.txz /home/artembunichev |tee /tmp/buh.log
+ -cJvf /tmp/hom.txz /home/artembunichev 2>&1 |tee /tmp/buh.log

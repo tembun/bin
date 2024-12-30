@@ -21,4 +21,4 @@ tar\
  --exclude='/home/artembunichev/.config/chromium/**/Cache'\
  --exclude='/home/artembunichev/.config/chromium/**/CacheStorage'\
  --exclude='/home/artembunichev/dev/wsv/m3t'\
- -cJvf /tmp/bup.txz / |tee /tmp/bup.log
+ -cJvf /tmp/bup.txz / 2>&1 |tee /tmp/bup.log
