@@ -1,0 +1,35 @@
+#!/bin/sh
+
+# mp32ogg -- convert all the .mp3 files to .ogg.
+#
+# Takes a target directory as an argument.
+
+
+if [ ! -x /usr/local/bin/ffmpeg ];then
+	echo "[mp32ogg]: you need a ffmpeg(1) to run this." 1>&2
+	exit 1
+fi
+
+tgtdir="$1"
+
+if [ -z "$1" ];then
+	echo "[mp32ogg]: please, specify a target directory." 1>&2
+	exit 1
+fi
+
+if [ ! -d "$1" ];then
+	echo "[mp32ogg]: $1 is not a directory." 1>&2
+	exit 1
+fi
+
+mp3files=$(find "$tgtdir" -type f -name "*.mp3")
+
+IFS=$'\n'
+for mp3 in $mp3files;do
+	ogg=$(echo "$mp3" |sed 's/\.mp3$/\.ogg/')
+	if [ -f "$ogg" ];then
+		continue
+	fi
+	echo "[mp32ogg]: $mp3 -> $ogg."
+	/usr/local/bin/ffmpeg -loglevel 8 -i "$mp3" "$ogg"
+done
