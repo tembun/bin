@@ -24,6 +24,7 @@ for src in $srcs;do
 		exit 1
 	fi
 	out=$(echo "$src"|sed 's/\.c//')
-	cc -o "$out" "$src" -I/usr/local/include -L/usr/local/lib $opts &&\
 	echo "[cmp]: $(basename $src) -> $(basename $out)"
+	cc -o "$out" "$src" -I/usr/local/include -L/usr/local/lib $opts &&\
+		llvm-strip "$out"
 done
