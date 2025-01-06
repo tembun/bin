@@ -1,30 +1,50 @@
 #!/bin/sh
-#this is a script for compiling files for
-#C-language program.
-#execute it from the project's directory.
-#if a compilation of a specific file(s) is desired,
-#specify it's (their's) name(s) without .c 
-#extension as argument(s).
-#it works only at 1-level depth.
+
+# this is a script for compiling the C-language programs,
+# particullary on FreeBSD.
+#
+# it specifies `/usr/local'-paths for both include files
+# and libraries, asks a compiler to perform size-optimizations
+# (more precisely, it uses `-Oz' option, see clang(1)),
+# and after a successfull compilation it strips the resulting
+# binaries (via llvm-strip(1)).
+#
+# execute it from the project's directory.
+# if a compilation of a specific file(s) is desired, specify
+# its (their's) name(s) without `.c' extension as argument(s).
+
+
 if [ "$#" -ne 0 ]
-then srcs=$(echo "$@"|sed 's/$/\.c/')
-else srcs=$(find . -type f -name "*\.c" -maxdepth 1)
+	then srcs=$(echo "$@"|sed 's/$/\.c/')
+	else srcs=$(find . -type f -name "*\.c" -maxdepth 1)
 fi
+
 if [ -z "$srcs" ];then
 	echo "[cmp]: nothing to compile." 1>&2
 	exit 1
 fi
+
 opts=""
+
 if [ -f o.cmp ]
 	then opts=$(cat o.cmp |tr "\n" " ")
 fi
+
 for src in $srcs;do
 	if [ ! -f "$src" ];then
 		echo "[cmp]: no such file: $src." 1>&2
 		exit 1
 	fi
+
 	out=$(echo "$src"|sed 's/\.c//')
+
 	echo "[cmp]: $(basename $src) -> $(basename $out)"
-	cc -o "$out" "$src" -I/usr/local/include -L/usr/local/lib $opts &&\
-		llvm-strip "$out"
+
+	cc \
+	-o "$out" "$src" \
+	-I/usr/local/include \
+	-L/usr/local/lib \
+	-Oz \
+	$opts \
+	&&  llvm-strip "$out"
 done
