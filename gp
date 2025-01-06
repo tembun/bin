@@ -1,9 +1,9 @@
 #!/bin/sh
 
-#gp-git push script for my repositories.
+# gp -- push current branch changes to all the remote refs.
+#
+# pass `f' as a first argument to force the push.
 
-#it pushes current branch
-#changes to all the remote refs.
 
 if [ ! -d .git ];then
 	echo "[gp]: not a git repository." 1>&2
@@ -24,6 +24,11 @@ fi
 curbr=$(cat .git/HEAD |grep "ref: " |sed 's/.*\///')
 rems=$(ls .git/refs/remotes)
 
+opts=""
+if [ "$1" = "f" ];then
+	opts="-f"
+fi
+
 for rem in $rems;do
-	git push $rem $curbr &
+	git push $opts $rem $curbr &
 done
