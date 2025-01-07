@@ -1,21 +1,32 @@
 #!/bin/sh
-#a script of mine that
-#excludes specified files
-#from being tracked by git(1).
 
+# a script of mine that
+# excludes specified files
+# from being tracked by git(1).
+
+
+list=0
 if [ "$#" -eq 0 ];then
-	echo "giig: specify some files to ignore." 1>&2
-	exit 1
+	list=1
 fi
 
 if [ ! -d .git ];then
-	echo "giig: not a git repository." 1>&2
+	echo "[giig]: not a git repository." 1>&2
 	exit 1
 fi
 
 if [ ! -f .gitignore ];then
-	touch .gitignore
+	if [ "$list" = "1" ]
+		then
+			echo "[giig]: no .gitignore file."
+			exit 0
+		else touch .gitignore
+	fi
 fi
 
-fls=$(echo -n "$@" |tr " " "\n")
-echo "$fls" >>.gitignore
+if [ "$list" = "0" ]
+	then
+		fls=$(echo -n "$@" |tr " " "\n")
+		echo "$fls" >>.gitignore
+	else cat .gitignore
+fi
