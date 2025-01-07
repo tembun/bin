@@ -5,8 +5,24 @@
 # specify an output file name as argument. it uses the `.mkv'
 # format, so there's no need to specify the extension.
 
-if [ -z "$1" ]; then
-	echo "[sca]: which output name?" 1>&2
+
+out="$1"
+
+if echo "$1" |grep -q "^\-" ;then
+	out="$2"
+	
+	if echo "$1" | grep -q "m";then
+		if [ ! -c /dev/dsp3 ];then
+			echo "[cast]: no microphone attached at /dev/dsp3." 1>&2
+			exit 1
+		fi
+		
+		aud="-f oss -i /dev/dsp3"
+	fi
+fi
+
+if [ -z "$out" ]; then
+	echo "[cast]: which output name?" 1>&2
 	exit 1
 fi
 
@@ -14,8 +30,9 @@ ffmpeg \
 -video_size 1366x768 \
 -framerate 15 \
 -f x11grab -i :0 \
+$aud \
 -b 530k \
 -crf 34  \
 -vcodec libx264 \
 -preset slow \
-"$1.mkv"
+"$out.mkv"
