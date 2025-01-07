@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# cast -- do a screencast.
+#
+# specify an output file name as argument. it uses the `.mkv'
+# format, so there's no need to specify the extension.
+
+if [ -z "$1" ]; then
+	echo "[sca]: which output name?" 1>&2
+	exit 1
+fi
+
+ffmpeg \
+-video_size 1366x768 \
+-framerate 15 \
+-f x11grab -i :0 \
+-b 530k \
+-crf 34  \
+-vcodec libx264 \
+-preset slow \
+"$1.mkv"
