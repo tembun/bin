@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# script for remuxing .mkv to .mp4 via ffmpeg(1).
+
+
+if [ ! -x /usr/local/bin/ffmpeg ];then
+	echo "[mkv2mp4]: you need ffmpeg(1) to run this." 1>&2
+	exit 1
+fi
+
+if [ -z "$1" ];then
+	echo "[mkv2mp4]: specify target files." 1>&2
+	exit 1
+fi
+
+mkvs="$@"
+
+for mkv in $mkvs; do
+	mp4=$(echo "$mkv" |sed 's/\.mkv$/\.mp4/')
+	echo "[mkv2mp4]: $mkv -> $mp4."
+	/usr/local/bin/ffmpeg -loglevel 8 -i "$mkv" -c copy -map 0 "$mp4"
+done
