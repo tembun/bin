@@ -18,7 +18,7 @@ xii=$(xii)
 pid=$(xprop -id "$xii"|grep _NET_WM_PID |sed 's/.*= //')
 ps -j \
 |grep "$pid" \
-|grep " sh$" \
+|grep " /bin/sh$" \
 |tail -n1 \
 |cut -d ' ' -f2 \
 |xargs pwdx \
