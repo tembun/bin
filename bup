@@ -1,24 +1,25 @@
 #!/bin/sh
-tar\
- --exclude='/tmp'\
- --exclude='/mnt'\
- --exclude='/sys'\
- --exclude='/dev'\
- --exclude='/proc'\
- --exclude='/run'\
- --exclude='/var/tmp'\
- --exclude='/var/cache'\
- --exclude='/var/local'\
- --exclude='/var/opt'\
- --exclude='/var/log'\
- --exclude='/usr/obj'\
- --exclude='/usr/lib/debug'\
- --exclude='dead.letter'\
- --exclude='/home/artembunichev/.cache'\
- --exclude='.npm'\
- --exclude='node_modules'\
- --exclude='.mozilla'\
- --exclude='/home/artembunichev/.config/chromium/**/Cache'\
- --exclude='/home/artembunichev/.config/chromium/**/CacheStorage'\
- --exclude='/home/artembunichev/dev/wsv/m3t'\
- -cJvf /tmp/bup.txz / 2>&1 |tee /tmp/bup.log
+
+tar \
+ --exclude='.cache' \
+ --exclude='.npm' \
+ --exclude='.mozilla' \
+ --exclude='.kyua' \
+ --exclude='.cpan' \
+ --exclude='.ccache' \
+ --exclude='.sujournal' \
+ --exclude='.sh_history' \
+ --exclude='node_modules' \
+ --exclude='chromium/**/Cache' \
+ --exclude='chromium/**/CacheStorage' \
+ --exclude='wsv/m3t' \
+-cJvf /tmp/bup.txz \
+ /boot/loader.conf \
+ /boot/loader/kernel.good \
+ /boot/loader/kernel.install \
+ /etc \
+ /usr/local/etc \
+ /usr/local/src \
+ /root \
+ /home \
+2>&1 |tee /tmp/bup.log
