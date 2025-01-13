@@ -2,7 +2,7 @@
 
 # mp32ogg -- convert all the .mp3 files to .ogg.
 #
-# Takes a target directory as an argument.
+# Takes a list of .mp3 files to be converted as an argument.
 
 
 if [ ! -x /usr/local/bin/ffmpeg ];then
@@ -10,24 +10,21 @@ if [ ! -x /usr/local/bin/ffmpeg ];then
 	exit 1
 fi
 
-tgtdir="$1"
+mp3s="$@"
 
-if [ -z "$1" ];then
-	echo "[mp32ogg]: please, specify a target directory." 1>&2
+if [ -z "$mp3s" ];then
+	echo "[mp32ogg]: please, name .mp3 files to be converted." 1>&2
 	exit 1
 fi
 
-if [ ! -d "$1" ];then
-	echo "[mp32ogg]: $1 is not a directory." 1>&2
-	exit 1
-fi
-
-mp3files=$(find "$tgtdir" -type f -name "*.mp3")
-
-IFS=$'\n'
-for mp3 in $mp3files;do
+for mp3 in $mp3s;do
+	if [ ! -f "$mp3" ];then
+		echo "[mp32ogg]: "$mp3" does not exist." 1>&2
+		continue
+	fi
 	ogg=$(echo "$mp3" |sed 's/\.mp3$/\.ogg/')
 	if [ -f "$ogg" ];then
+		echo "[mp32ogg]: .ogg version of $mp3 already exists." 1>&2
 		continue
 	fi
 	echo "[mp32ogg]: $mp3 -> $ogg."
