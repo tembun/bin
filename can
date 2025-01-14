@@ -6,8 +6,12 @@
 # I consider it solely as visual tool.
 
 
+idx=0
 for file in "$@";do
 	echo "[$file]:"
 	cat "$file"
-	echo
+	idx=$((idx+1))
+	if [ $idx != $# ];then
+		echo
+	fi
 done
