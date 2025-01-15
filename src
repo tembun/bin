@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# src -- locate source code for FreeBSD base system binaries.
+
+
+if [ -n "$1" ];then
+	opts="-name $1"
+fi
+
+find /usr/src -not -path "*/\.git*" $opts
