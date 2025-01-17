@@ -1,5 +1,6 @@
 #!/bin/sh
 
+pkg prime-list >/pkg.list &&\
 tar \
  --exclude='.cache' \
  --exclude='.npm' \
