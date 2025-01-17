@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# bup -- backup FreeBSD system.
+
+
 pkg prime-list >/pkg.list &&\
 tar \
  --exclude='.cache' \
