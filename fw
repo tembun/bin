@@ -1,3 +1,8 @@
 #!/bin/sh
-#get names of the files that contain pattern.
-grep -RIi "$1" "$2" |sed "s/:.*//" |uniq
+
+# fw -- find files containing pattern. case-sensitive.
+#
+# for case-insensitive version of it see ~/bin/fwj.
+
+
+grep -RI "$1" "$2" |sed "s/:.*//" |uniq
