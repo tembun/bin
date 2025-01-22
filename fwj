@@ -5,4 +5,4 @@
 # for case-sensitive version of it see ~/bin/fw.
 
 
-grep -RIi "$1" "$2" |sed "s/:.*//" |uniq
+grep --exclude-dir=".git" -RIli "$@"
