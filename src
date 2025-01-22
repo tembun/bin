@@ -186,8 +186,8 @@ for tgt in $tgts;do
 	
 	# Resolve symlinks (like tar(1) is a symlink to /usr/bin/bsdtar).
 	# And also escape characters like "[" and "." for executables
-	# like [(1) (which is also test(1)) can be used to (otherwise,
-	# they will be treated as part of regex sytax by grep(1)).
+	# like [(1) (which is also test(1)) (otherwise, they will be
+	# treated as part of regex sytax by grep(1)).
 	tgt_path=$(realpath "$tgt_path" \
 	           |sed -e 's/\[/\\\[/g' \
 	                -e 's/\./\\\./g')
