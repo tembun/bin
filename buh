@@ -8,5 +8,5 @@ tar\
  --exclude='.mozilla'\
  --exclude='.config/chromium/**/Cache'\
  --exclude='.config/chromium/**/CacheStorage'\
- --exclude='/home/artembunichev/dev/wsv/m3t'\
- -cJvf /tmp/hom.txz /home/artembunichev 2>&1 |tee /tmp/buh.log
+ --exclude="$HOME/dev/wsv/m3t"\
+ -cJvf /tmp/hom.txz "$HOME" 2>&1 |tee /tmp/buh.log
