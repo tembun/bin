@@ -3,7 +3,8 @@
 # bup -- backup FreeBSD system.
 
 
-pkg prime-list >/pkg.list &&\
+pkg prime-list >/pkg.list && \
+(
 tar \
  --exclude='.cache' \
  --exclude='.npm' \
@@ -18,12 +19,15 @@ tar \
  --exclude='chromium/**/CacheStorage' \
  --exclude='wsv/m3t' \
 -cJvf /tmp/bup.txz \
+--options xz:compression-level=9,xz:threads=0 \
  /boot/loader.conf \
- /boot/loader/kernel.good \
- /boot/loader/kernel.install \
+ /boot/kernel \
+ /boot/kernel.good \
+ /boot/kernel.install \
  /etc \
  /usr/local/etc \
  /usr/local/src \
  /root \
  /home \
 2>&1 |tee /tmp/bup.log
+) && rm -f /pkg.list
