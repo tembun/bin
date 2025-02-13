@@ -44,7 +44,7 @@ for src in $srcs;do
 	-o "$out" "$src" \
 	-I/usr/local/include \
 	-L/usr/local/lib \
-	-Oz \
+	-Os \
 	$opts \
 	&&  llvm-strip "$out"
 done
