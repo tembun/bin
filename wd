@@ -20,6 +20,6 @@ ps -j \
 |grep "$pid" \
 |grep " /bin/sh$" \
 |tail -n1 \
-|cut -d ' ' -f2 \
+|cut -d ' ' -f3 \
 |xargs pwdx \
 |sed 's/.* //'
