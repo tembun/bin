@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# Find `typedef's through system header files.
+
+
+if [ -z "$1" ];then
+	echo "usage: fh <type>" 1>&2
+	exit 1
+fi
+
+grep -Er "typedef.*$1;" /usr/include
