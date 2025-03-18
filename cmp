@@ -42,6 +42,8 @@ for src in $srcs;do
 
 	cc \
 	-o "$out" "$src" \
+	-Wall \
+	-Wextra \
 	-I/usr/local/include \
 	-L/usr/local/lib \
 	-Os \
