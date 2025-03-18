@@ -5,7 +5,7 @@
 #
 # it specifies `/usr/local'-paths for both include files
 # and libraries, asks a compiler to perform size-optimizations
-# (more precisely, it uses `-Oz' option, see clang(1)),
+# (more precisely, it uses `-Os' option, see clang(1)),
 # and after a successfull compilation it strips the resulting
 # binaries (via llvm-strip(1)).
 #
