@@ -28,11 +28,11 @@ fi
 
 ffmpeg \
 -video_size 1366x768 \
--framerate 15 \
+-framerate 24 \
 -f x11grab -i :0 \
 $aud \
--b 530k \
--crf 34  \
+-b 550k \
+-crf 30  \
 -vcodec libx264 \
--preset slow \
+-preset fast \
 "$out.mkv"
