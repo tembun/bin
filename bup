@@ -3,7 +3,7 @@
 # bup -- backup FreeBSD system.
 
 
-pkg prime-list >/pkg.list && \
+pkg prime-origins >/ports.list && \
 (
 tar \
  --exclude='.cache' \
@@ -30,4 +30,4 @@ tar \
  /root \
  /home \
 2>&1 |tee /tmp/bup.log
-) && rm -f /pkg.list
+) && rm -f /ports.list
