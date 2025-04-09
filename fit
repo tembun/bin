@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# fit -- print a sequence of 67 dashes ('-') in order to
+# fit -- print a sequence of 80 dashes ('-') in order to
 # tell whether or not the text fits this number of characters.
 
 
-printf "%67s\n" |tr " " "-"
+printf "%80s\n" |tr " " "-"
