@@ -1,0 +1,133 @@
+#!/bin/sh
+
+# tt -- track time.
+
+tt_file=/var/tmp/tt
+
+date_diff() {
+	diff_s=$(($2-$1))
+	diff_sec=$((diff_s%3600%60))
+	diff_min=$((diff_s%3600/60))
+	diff_hour=$((diff_s/3600))
+}
+
+make_time_str() {
+	sec_fmt=$diff_sec
+	min_fmt=$diff_min
+	hour_fmt=$diff_hour
+	if [ $sec_fmt -lt 10 ]; then
+		sec_fmt="0$sec_fmt"
+	fi
+	if [ $min_fmt -lt 10 ]; then
+		min_fmt="0$min_fmt"
+	fi
+	if [ $hour_fmt -lt 10 ]; then
+		hour_fmt="0$hour_fmt"
+	fi
+	time_str="$hour_fmt:$min_fmt:$sec_fmt"
+}
+
+list_all() {
+	if [ ! -f $tt_file ]; then
+		echo "No time stamps yet"
+		exit 0
+	fi
+
+	stamps=$(grep -v "[ab]" $tt_file)
+	ranges_len=$(($(grep -v "[ab]" $tt_file |wc -l)/2))
+	idx=1
+	is_start=1
+	if [ $(grep -v "[0-9]" $tt_file |tail -n1) = "a" ]; then
+		is_unclosed=1
+	fi
+	tot_s=0
+	IFS="
+"
+	for stamp in $stamps; do
+		if [ $is_start -eq 1 ]; then
+			st=$stamp
+			is_start=0
+			if [ $idx -eq $((ranges_len+1)) ]; then
+				en=$(date +%s)
+				date_diff $st $en
+				if [ $is_long -eq 1 ]; then
+					date_st=$(date -r "$st")
+					date_en=$(date -r "$en")
+					long_str="	$date_st -> $date_en"
+				fi
+				tot_s=$((tot_s+diff_s))
+				make_time_str
+				echo "[run]:	$time_str$long_str"
+			fi
+		else
+			en=$stamp
+			date_diff $st $en
+			if [ $is_long -eq 1 ]; then
+				date_st=$(date -r "$st")
+				date_en=$(date -r "$en")
+				long_str="	$date_st -> $date_en"
+			fi
+			tot_s=$((tot_s+diff_s))
+			make_time_str
+			echo "$idx:	$time_str$long_str"
+			idx=$((idx+1))
+			is_start=1
+		fi
+	done
+	date_diff 0 $tot_s
+	make_time_str
+	echo "Total:	$time_str"
+}
+
+is_long=0
+if [ "$1" = "-l" ]; then
+	is_long=1
+fi
+if [ $# -eq 0 ] || [ $is_long -eq 1 ]; then
+	list_all
+	exit 0
+fi
+
+if [ "$1" = "a" ]; then
+	if [ ! -f $tt_file ] || \
+	    [ $(tail -n2 $tt_file |head -n1) != "a" ]; then
+		echo -e "a\n$(date +%s)" >>$tt_file
+		exit 0
+	fi
+	echo "You haven't closed the previous range" 1>&2
+	echo $(date -r $(tail -n1 $tt_file)) 1>&2
+	exit 1
+
+fi
+
+if [ "$1" = "b" ]; then
+	if [ -f $tt_file ] && \
+	    [ $(tail -n2 $tt_file |head -n1) = "a" ]; then
+		en=$(date +%s)
+		st=$(tail -n1 $tt_file)
+		echo -e "b\n$en" >>$tt_file
+		date_diff $st $en
+		make_time_str
+		echo "Range closed:	$time_str"
+		exit 0
+	fi
+	echo "You haven't started a range yet" 1>&2
+	exit 1
+fi
+
+if [ "$1" = "clean" ]; then
+	rm -f $tt_file
+	exit 0
+fi
+
+if [ "$1" = "-v" ]; then
+	if [ ! -f $tt_file ]; then
+		echo "No timestamps yet"
+		exit 0
+	fi
+	cat $tt_file
+	exit 0
+fi
+
+echo "Unknown command $1" 1>&2
+exit 1
