@@ -49,30 +49,32 @@ list_all() {
 			is_start=0
 			if [ $idx -eq $((ranges_len+1)) ]; then
 				en=$(date +%s)
-				date_diff $st $en
-				if [ $is_long -eq 1 ]; then
-					date_st=$(date -r "$st")
-					date_en=$(date -r "$en")
-					long_str="	$date_st -> $date_en"
-				fi
-				tot_s=$((tot_s+diff_s))
-				make_time_str
-				echo "[run]:	$time_str$long_str"
+				prefix="[run]"
+				is_print=1
+			else
+				is_print=0
 			fi
 		else
 			en=$stamp
-			date_diff $st $en
-			if [ $is_long -eq 1 ]; then
-				date_st=$(date -r "$st")
-				date_en=$(date -r "$en")
-				long_str="	$date_st -> $date_en"
-			fi
-			tot_s=$((tot_s+diff_s))
-			make_time_str
-			echo "$idx:	$time_str$long_str"
+			is_print=1
+			prefix="$idx"
 			idx=$((idx+1))
 			is_start=1
 		fi
+		
+		if [ $is_print -ne 1 ]; then
+			continue
+		fi
+		
+		date_diff $st $en
+		if [ $is_long -eq 1 ]; then
+			date_st=$(date -r "$st")
+			date_en=$(date -r "$en")
+			long_str="	$date_st -> $date_en"
+		fi
+		tot_s=$((tot_s+diff_s))
+		make_time_str
+		echo "$prefix:	$time_str$long_str"
 	done
 	date_diff 0 $tot_s
 	make_time_str
