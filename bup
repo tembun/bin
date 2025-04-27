@@ -5,7 +5,7 @@
 
 pkg prime-origins >/ports.list && \
 (
-tar \
+time tar \
  --exclude='.cache' \
  --exclude='.npm' \
  --exclude='.mozilla' \
