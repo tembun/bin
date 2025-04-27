@@ -1,38 +1,62 @@
 #!/bin/sh
 
-# cast -- do a screencast.
 #
-# specify an output file name as argument. it uses the `.mkv'
-# format, so there's no need to specify the extension.
+# cast -- do screencast in FreeBSD.
+#
+# An argument does specify a path for output file without extension.
+# The output container is `.mkv'.
+#
+# Options:
+#     -m: Capture microphone sound.
+#     -s: Capture screen (desktop) sound.
+# Only one of these options may be specified.
+#
 
+need_aud_restore=0
+aud_restore() {
+	mixer "$orig_rec.recsrc=set"
+}
+
+if echo "$1" |grep -q "^\-" ;then
+	if echo "$1" |grep -q "[ms]"; then
+		aud="-f oss -i /dev/dsp"
+		
+		orig_rec=$(mixer | \
+		    grep src | \
+		    tr -s ' ' | \
+		    sed 's/ \([a-z]*\) .*/\1/')
+		need_aud_restore=1
+		trap aud_restore 1 2 15
+	fi
+	
+	if echo "$1" |grep -q "m"; then
+		device="monitor"
+	else if echo "$1" |grep -q "s"; then
+		device="mic"
+	fi
+	fi
+	shift
+	
+	mixer "$device.recsrc=set"
+fi
 
 out="$1"
 
-if echo "$1" |grep -q "^\-" ;then
-	out="$2"
-	
-	if echo "$1" | grep -q "m";then
-		if [ ! -c /dev/dsp3 ];then
-			echo "[cast]: no microphone attached at /dev/dsp3." 1>&2
-			exit 1
-		fi
-		
-		aud="-f oss -i /dev/dsp3"
-	fi
-fi
-
 if [ -z "$out" ]; then
-	echo "[cast]: which output name?" 1>&2
+	echo "[cast]: Which output name?" 1>&2
 	exit 1
 fi
 
 ffmpeg \
--video_size 1366x768 \
--framerate 24 \
--f x11grab -i :0 \
-$aud \
--b 550k \
--crf 30  \
--vcodec libx264 \
--preset fast \
-"$out.mkv"
+ -video_size 1366x768 \
+ -framerate 30 \
+ -f x11grab -i :0 \
+ $aud \
+ -crf 22 \
+ -vcodec libx264 \
+ -preset fast \
+ "$out.mkv"
+
+if [ $need_aud_restore -ne 0 ]; then
+	aud_restore
+fi
