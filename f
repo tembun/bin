@@ -13,12 +13,14 @@ else
 	args=$1
 fi
 
+progname=$(printf "$0" |sed 's/.*\///')
+
 if [ -z "$args" ]; then
-	echo "Usage: $0 pattern [path ...]" 1>&2
+	echo "Usage: $progname pattern [path ...]" 1>&2
 	exit 1
 fi
 
-last_name_char=$(printf "$0" |sed 's/\.sh//' |tail -c1)
+last_name_char=$(printf "$progname" |sed 's/\.sh//' |tail -c1)
 if [ "$last_name_char" = "j" ]; then
 	case_flag="-i"
 else
