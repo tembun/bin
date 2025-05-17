@@ -1,17 +1,18 @@
 #!/bin/sh
 
+#
 # can -- named cat(1).
 #
 # cat(1) files, but also print their names.
 # I consider it solely as visual tool.
-
+#
 
 idx=0
 for file in "$@";do
-	echo "[$file]:"
+	echo "==> $file <=="
 	cat "$file"
 	idx=$((idx+1))
-	if [ $idx != $# ];then
+	if [ $idx != $# ]; then
 		echo
 	fi
 done
