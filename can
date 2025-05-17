@@ -8,7 +8,12 @@
 #
 
 idx=0
-for file in "$@";do
+for file in "$@"; do
+	if [ ! -f $file ]; then
+		echo "[can]: $file does not exist" 1>&2
+		continue
+	fi
+
 	echo "==> $file <=="
 	cat "$file"
 	idx=$((idx+1))
