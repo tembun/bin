@@ -1,8 +1,0 @@
-#!/bin/sh
-#find matches. case insensitive.
-#use ~/bin/f for case sensitive version of it.
-
-if [ -t 0 ]
-then GREP_COLOR="1;7" grep --exclude-dir=".git" --color=always -RinI "$@"
-else GREP_COLOR="1;7" grep --exclude-dir=".git" --color=always -inI "$1"
-fi

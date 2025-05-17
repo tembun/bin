@@ -1,8 +1,34 @@
 #!/bin/sh
-#find matches. case sensitive.
-#use ~/bin/fj for case insensitive version of it.
 
-if [ -t 0 ]
-then GREP_COLOR="1;7" grep --exclude-dir=".git" --color=always -RnI "$@"
-else GREP_COLOR="1;7" grep --exclude-dir=".git" --color=always -nI "$1"
+#
+# f -- find and highlight pattern matches in files. Case-sensitive.
+# fj -- case-insensitive version of `f'.
+#
+
+if [ -t 0 ]; then
+	recurs_flag="-R"
+	args=$@
+else
+	recurs_flag=""
+	args=$1
 fi
+
+if [ -z "$args" ]; then
+	echo "Usage: $0 pattern [path ...]" 1>&2
+	exit 1
+fi
+
+last_name_char=$(printf "$0" |sed 's/\.sh//' |tail -c1)
+if [ "$last_name_char" = "j" ]; then
+	case_flag="-i"
+else
+	case_flag=""
+fi
+
+GREP_COLOR="1;7" grep \
+    --exclude-dir=".git" \
+    --color=always \
+    $recurs_flag \
+    $case_flag \
+    -nI \
+    $args
