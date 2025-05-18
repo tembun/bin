@@ -2,7 +2,7 @@
 
 #
 # r -- replace string matches in-place in files. Case-sensitive.
-# rj -- case-insensitive verion of `r'.
+# rj -- case-insensitive version of `r'.
 #
 
 pat="$1"
