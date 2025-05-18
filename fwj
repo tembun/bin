@@ -1,8 +1,0 @@
-#!/bin/sh
-
-# fwj -- find files containing pattern. case-insensitive.
-#
-# for case-sensitive version of it see ~/bin/fw.
-
-
-grep --exclude-dir=".git" -RIli "$@"
