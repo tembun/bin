@@ -1,0 +1,19 @@
+#!/bin/sh
+
+#
+# i3-urge -- forcefully focus urgent i3 windows, even if
+#            they're in another workspace.
+#
+# Somehow, this bahaviour is not default and can't be set
+# by means of default conviguration. Or, at least, it works
+# only once for each window and the refuses to work again.
+#
+
+i3-msg -t subscribe -m '["workspace"]' |
+	while read out; do
+		urgent_ws=$(echo "$out" | \
+		    jq 'select(.change=="urgent")')
+    		if [ -n "$urgent_ws" ]; then
+    			i3-msg "[urgent=latest] focus" >/dev/null 2>&1
+    		fi
+	done
