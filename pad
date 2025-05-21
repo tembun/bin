@@ -1,0 +1,17 @@
+#!/bin/sh
+
+#
+# pad -- open in visual editor.
+#
+
+if [ -z "$VISUAL" ]; then
+	echo "[pad]: No \$VISUAL variable defined" 1>&2
+	exit 1
+fi
+
+if [ -t 0 ]; then
+	"$VISUAL"
+else
+	tmp_name="/tmp/pad_$(date +%H-%M-%S_%N)"
+	cat >"$tmp_name" && "$VISUAL" "$tmp_name"
+fi
