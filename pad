@@ -10,7 +10,7 @@ if [ -z "$VISUAL" ]; then
 fi
 
 if [ -t 0 ]; then
-	"$VISUAL"
+	"$VISUAL" $@
 else
 	tmp_name="/tmp/pad_$(date +%H-%M-%S_%N)"
 	cat >"$tmp_name" && "$VISUAL" "$tmp_name"
