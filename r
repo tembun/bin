@@ -4,6 +4,10 @@
 # r -- replace string matches in-place in files. Case-sensitive.
 # rj -- case-insensitive version of `r'.
 #
+# Escaped parenthesis (`\(' and `\)') can be used in pattern for capturing the
+# group and escaped numbers (`\1', `\2' and so on...) can be used in
+# substitution string to refer the respective captured group match.
+#
 
 pat="$1"
 shift
