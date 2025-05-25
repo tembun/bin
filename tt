@@ -1,6 +1,8 @@
 #!/bin/sh
 
+#
 # tt -- track time.
+#
 
 tt_file=/var/tmp/tt
 
