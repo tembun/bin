@@ -1,3 +1,10 @@
 #!/bin/sh
-#largest files in home.
-du "$HOME" -kd2|sort -nr|tail -n +2|head -n31
+
+#
+# sz -- list the largest files in $HOME.
+#
+
+du "$HOME" -kd2 \
+    |sort -nr \
+    |tail -n +2 \
+    |head -n 31
