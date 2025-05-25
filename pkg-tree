@@ -1,12 +1,14 @@
 #!/bin/sh
 
+#
 # pkg-tree -- display a tree-like structure for packages in FreeBSD.
 #
 # It makes use of pkg-info(8) in order to recursively obtain
 # either package dependencies (`-d' switch) or dependents (`-r')
-# and display them as a tree.
+# and display them as a tree.  The script may go recursive (infinite).
 #
 # You can modify `tab' variable in this script to fit your needs.
+#
 
 
 print_tree() {
@@ -18,7 +20,7 @@ print_tree() {
 "
 	for line in $info; do
 		if ! echo "$line" |grep -q "	"; then
-			if [ $first = 1 ];then
+			if [ $first = 1 ]; then
 				echo "$line" |sed 's/:$//'
 				first=0
 			fi
@@ -35,9 +37,9 @@ mode="$1"
 target="$2"
 
 if [ -z "$mode" ] \
-  || ([ "$mode" != '-r' ] \
-  && [ "$mode" != '-d' ]) \
-  || [ -z "$target" ]; then
+    || ([ "$mode" != '-r' ] \
+    && [ "$mode" != '-d' ]) \
+    || [ -z "$target" ]; then
 	echo "usage: pkg-tree <-r|-d> <package>" 1>&2
 	exit 1
 fi
