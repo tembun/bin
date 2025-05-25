@@ -4,7 +4,6 @@
 # can -- named cat(1).
 #
 # cat(1) files, but also print their names.
-# I consider it solely as visual tool.
 #
 
 idx=0
