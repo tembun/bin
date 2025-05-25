@@ -33,4 +33,4 @@ GREP_COLOR="1;7" grep \
     $recurs_flag \
     $case_flag \
     -nI \
-    $args
+    "$args"
