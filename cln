@@ -1,10 +1,14 @@
 #!/bin/sh
-#a script for cleaning
-#C-sourced binaries.
+
+#
+# cln -- clean C-sourced binaries.
+#
+
 outs=$(find . -type f -name "*\.c" |sed "s/\.c//")
-for out in $outs;do
-        if [ -f "$out" ];then
-		rm $out
-		echo "[cln]: rm $(basename $out)"
+
+for out in $outs; do
+        if [ -f "$out" ]; then
+		rm "$out"
+		echo "[cln]: rm $(basename $out)" 1>&2
         fi
 done
