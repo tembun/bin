@@ -1,16 +1,18 @@
 #!/bin/sh
-#mdf-modify a file with a command.
+
+#
+# mdf -- modify a file with a command.
+#
+
 file="$1"
 com="$2"
-if [ -z "$file" ];then
-	echo "mdf: specify a target file (1'st arg)." 1>&2
-	exit 1
-elif [ -z "$com" ];then
-	echo "mdf: specify a command to modify file with (2'd arg)." 1>&2
+
+if [ -z "$file" ] || [ -z "$com" ]; then
+	echo "Usage: mdf file command" 1>&2
 	exit 1
 fi
+
 tmpf="/tmp/$(basename $file).tmp"
 {
-$com <"$file" >$tmpf &&\
-mv $tmpf "$file"
-}|| rm -f $tmpf
+	$com <"$file" >"$tmpf" && mv "$tmpf" "$file"
+} || rm -f "$tmpf"
