@@ -1,6 +1,7 @@
 #!/bin/sh
 
-# A simple buffer for entering text.
-
+#
+# buf -- simple buffer for entering text.
+#
 
 cat >/dev/null
