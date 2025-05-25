@@ -1,14 +1,26 @@
 #!/bin/sh
-#check if webcam usb device in connected at boot time.
-#this script is supposed to be invoked at
-#a boot time.
+
+#
+# wbcboot -- a boot routine for webcam in FreeBSD.
+#
+# Connect a webcam if it's _not_ connected at boot time.
+#
+
 devs=$(dmesg |grep "ugen.*" |sed "s/:.*//" |sort |uniq)
-for dev in $devs;do
-	if [ -z $dev ]; then break; fi
-	mtch=$(usbconfig -d $dev dump_device_desc |grep "bDeviceClass = 0x00ef")
-	if [ -n $mtch ];then
+
+for dev in $devs; do
+	if [ -z $dev ]; then
+		break;
+	fi
+	mtch=$(usbconfig -d $dev dump_device_desc \
+	    |grep "bDeviceClass = 0x00ef")
+	if [ -n $mtch ]; then
 		wbc=$dev
 	fi
 done
-if [ -z "wbc" ];then exit 0;fi
+
+if [ -z "wbc" ]; then
+	exit 0
+fi
+
 /usr/local/sbin/wbccnct $wbc
