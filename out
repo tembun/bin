@@ -1,11 +1,15 @@
 #!/bin/sh
-#a very simple infinite
-#loop for printing something
-#onto stdout.
-#I particularly use it for auditing
-#tty scrolling in xterm(1).
 
-while true;do
-	echo "[out]: $(date)."
-	sleep 1
+#
+# out -- print current date(1) to the stdout with specified delay.
+#
+
+delay="$1"
+if [ -z "$delay" ]; then
+	delay="1"
+fi
+
+while true; do
+	echo "[out]: $(date)"
+	sleep "$delay"
 done
