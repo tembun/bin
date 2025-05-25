@@ -17,14 +17,14 @@ aud_restore() {
 	mixer "$orig_rec.recsrc=set"
 }
 
-if echo "$1" |grep -q "^\-" ;then
+if echo "$1" |grep -q "^\-"; then
 	if echo "$1" |grep -q "[ms]"; then
 		aud="-f oss -i /dev/dsp"
 		
-		orig_rec=$(mixer | \
-		    grep src | \
-		    tr -s ' ' | \
-		    sed 's/ \([a-z]*\) .*/\1/')
+		orig_rec=$(mixer \
+		    |grep src \
+		    |tr -s ' ' \
+		    |sed 's/ \([a-z]*\) .*/\1/')
 		need_aud_restore=1
 		trap aud_restore 1 2 15
 	fi
@@ -48,14 +48,14 @@ if [ -z "$out" ]; then
 fi
 
 ffmpeg \
- -video_size 1366x768 \
- -framerate 30 \
- -f x11grab -i :0 \
- $aud \
- -crf 22 \
- -vcodec libx264 \
- -preset fast \
- "$out.mkv"
+    -video_size 1366x768 \
+    -framerate 30 \
+    -f x11grab -i :0 \
+    $aud \
+    -crf 22 \
+    -vcodec libx264 \
+    -preset fast \
+    "$out.mkv"
 
 if [ $need_aud_restore -ne 0 ]; then
 	aud_restore
