@@ -24,5 +24,4 @@ if [ $? -ne 0 ]; then
 fi
 
 rm -f *\.nfo
-mv *\.srt "$out" \
-    && rm -f "$file"
+mv *\.srt "$out" && rm -f "$file"
