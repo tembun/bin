@@ -1,0 +1,18 @@
+#!/bin/sh
+
+#
+# cdown -- countdown.
+#
+# I.e. visualization of sleep(1).
+#
+
+delay="$1"
+
+if [ -z "$delay" ]; then
+	delay=3
+fi
+
+for num in $(seq "$delay"); do
+	echo "$num"
+	sleep 1
+done
