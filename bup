@@ -5,7 +5,8 @@
 #
 # The behaviour of this script is fully driven by its configuration file
 # /usr/local/etc/buprc.  It allows to specify the backup strategies and
-# configure them.
+# configure them.  Additionally, is file ~/.buprc exists, its contents
+# is appended to the main configuration file.
 #
 # The configuration file looks like this:
 #     <strategy_name_1>:
@@ -58,15 +59,18 @@
 # Resulting tar(1) with the backup is compressed with xz(1).
 #
 
-cfg_file="/usr/local/etc/buprc"
+cfg_file_sys="/usr/local/etc/buprc"
+cfg_file_home="$HOME/.buprc"
 
-if [ ! -f "$cfg_file" ]; then
-	echo "[bup]: Config file $cfg_file is needed" 1>&2
+if [ ! -f "$cfg_file_sys" ]; then
+	echo "[bup]: Config file $cfg_file_sys is mandatory" 1>&2
 	exit 1
 fi
 
-cfg=$(cat "$cfg_file" |sed '/^[\t\s]*#/d' \
+cfg=$(cat "$cfg_file_sys" "$cfg_file_home" 2>/dev/null |sed -e '/^[\t\s]*#/d' \
+    -e "s%\$HOME%$HOME%g" \
     |perl -0pe 's/\n\t/ /g')
+
 strats=$(echo "$cfg" |egrep '^\w+:' |sed -e "s/:.*//" -e '/^$/d')
 # Use printf(1) instead of echo(1) in order to suppress trailing newline.
 strats_split=$(printf "$strats" |perl -0pe 's/\n/ | /g')
@@ -83,7 +87,7 @@ strat_cfg=$(echo "$cfg" |grep "^$strat: " \
     |perl -0pe 's/\n\t/ /g')
 
 if [ -z "$strat_cfg" ]; then
-	echo "[bup]: No configuration for $strat strategy in $cfg_file" 1>&2
+	echo "[bup]: No configuration for $strat strategy" 1>&2
 	exit 1
 fi
 
@@ -110,7 +114,7 @@ dump_ports_to=$(echo "$strat_cfg" |grep "^dump_ports_to: " \
     |sed 's/^dump_ports_to: //')
 
 if [ -z "$include" ]; then
-	echo "[bup]: 'include' config not found for $strat in $cfg_file" 1>&2
+	echo "[bup]: 'include' config not found for $strat" 1>&2
 	exit 1
 fi
 
