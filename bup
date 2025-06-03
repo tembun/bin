@@ -5,7 +5,7 @@
 #
 # The behaviour of this script is fully driven by its configuration file
 # /usr/local/etc/buprc.  It allows to specify the backup strategies and
-# configure them.  Additionally, is file ~/.buprc exists, its contents
+# configure them.  Additionally, if file ~/.buprc exists, its contents
 # is appended to the main configuration file.
 #
 # The configuration file looks like this:
