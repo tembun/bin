@@ -1,14 +1,17 @@
 #!/bin/sh
 
-# dof -- place symlinks to dot-file in HOME directory.
+#
+# dof -- place symlink(7)s to dot-files in $HOME directory.
+#
 
+base="$HOME"
+dof_dir=".dof"
 
-bas="$HOME"
-dof=".dof"
+cd "$base/$dof_dir"
+dot_files=$(find . -not -path "./.git/*" -type f \
+    |sed "s/^\.\///g")
 
-cd "$bas/$dof"
-kids=$(find . -not -path "./.git/*" -type f|sed "s/^\.\///g")
-for kid in $kids;do
-	mkdir -p $(dirname "$bas/$kid")
-	ln -s -f "$bas/$dof/$kid" "$bas/$kid"
+for dot_file in $dot_files; do
+	mkdir -p $(dirname "$base/$dot_file")
+	ln -s -f "$base/$dof_dir/$dot_file" "$base/$dot_file"
 done
