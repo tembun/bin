@@ -1,7 +1,10 @@
 #!/bin/sh
 
 #
-# hkeep -- remove garbage (unneeded files) from $HOME.
+# hkeep -- remove garbage (unneeded files) from home directories.
+#
+# If no arguments are specified, the target directory is set to $HOME.
+# Otherwise, the housekeeping will be done in directories, given as arguments.
 #
 # Options:
 #     -v	-- Be verbose.
@@ -19,7 +22,7 @@ usage()
 vlog()
 {
 	if [ $v_flg -eq 1 ]; then
-		echo $1
+		echo "$(basename $0): $target_dir: $1"
 	fi
 }
 
@@ -31,7 +34,8 @@ vlog()
 #
 clean_serverauth()
 {
-	target_files=$(find "$HOME" -maxdepth 1 -type f -name "\.serverauth*")
+	target_files=$(find "$target_dir" -maxdepth 1 -type f \
+	    -name "\.serverauth*")
 	
 	if [ -z "$target_files" ]; then
 		vlog "No .serverauth files found"
@@ -95,4 +99,17 @@ while getopts "v" o; do
 done
 shift $((OPTIND - 1))
 
-clean_serverauth
+if [ $# -eq 0 ]; then
+	target_dirs="$HOME"
+else
+	target_dirs="$@"
+fi
+
+for target_dir in $target_dirs; do
+	if [ ! -d "$target_dir" ]; then
+		echo "$target_dir is not a directory" 1>&2
+		continue
+	fi
+	
+	clean_serverauth "$target_dir"
+done
