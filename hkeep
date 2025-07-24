@@ -34,7 +34,7 @@ vlog()
 #
 clean_serverauth()
 {
-	target_files=$(find "$target_dir" -maxdepth 1 -type f \
+	target_files=$(find "$target_dir" -depth 1 -maxdepth 1 -type f \
 	    -name "\.serverauth*")
 	
 	if [ -z "$target_files" ]; then
