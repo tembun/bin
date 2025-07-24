@@ -1,0 +1,85 @@
+#!/bin/sh
+
+#
+# hkeep -- remove garbage (unneeded files) from $HOME.
+#
+# Options:
+#     -v	-- Be verbose.
+#
+
+#
+# Verbose logging.
+#
+vlog()
+{
+	if [ $vflg -eq 1 ]; then
+		echo $1
+	fi
+}
+
+#
+# .serverauth.* files are created by Xserver(1) and should be deleted every
+# time the server is closed properly.  Thus, if Xserver(1) is not running now,
+# we can freely delete all of them.  And in case it is running, we should find
+# the file that was createt most recently and leave live it the only one alive.
+#
+clean_serverauth()
+{
+	target_files=$(find "$HOME" -maxdepth 1 -type f -name "\.serverauth*")
+	
+	if [ -z "$target_files" ]; then
+		vlog "No .serverauth files found"
+		return 0
+	fi
+	
+	#
+	# Xserver(1) creates a unix(4) socket for every active display in
+	# /tmp/.X11-unix/X*.  If at least one such socket is found, we can tell
+	# that server is currently running.
+	#
+	if [ -n "$(find /tmp/.X11-unix -type s 2>/dev/null)" ]; then
+		x_running=1
+	else
+		x_running=0
+	fi
+	
+	if [ $x_running -eq 0 ]; then
+		vlog "X server is not running.  Remove all .serverauth files"
+		rm -v $target_files
+		return 0;
+	fi
+	
+	# If we only have a .serverauth file for currently running server.
+	if [ $(echo "$target_files" |wc -l) -eq 1 ]; then
+		vlog "No unnecessary .serverauth files found"
+		return 0
+	fi
+	
+	most_recent_name=""
+	most_recent_ts=0
+	
+	for target in $target_files; do
+		ts=$(stat -f %B "$target")
+		if [ $ts -ge $most_recent_ts ]; then
+			most_recent_ts=$ts
+			most_recent_name="$target"
+		fi
+	done
+	
+	vlog ".serverauth file for currently running server: $most_recent_name"
+	
+	for target in $target_files; do
+		if [ "$target" = "$most_recent_name" ]; then
+			continue
+		fi
+		rm -v "$target"
+	done
+}
+
+if [ "$1" = "-v" ]; then
+	vflg=1
+else
+	vflg=0
+fi
+
+clean_serverauth
