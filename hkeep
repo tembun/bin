@@ -21,7 +21,7 @@ vlog()
 # .serverauth.* files are created by Xserver(1) and should be deleted every
 # time the server is closed properly.  Thus, if Xserver(1) is not running now,
 # we can freely delete all of them.  And in case it is running, we should find
-# the file that was createt most recently and leave live it the only one alive.
+# the file that was created most recently and leave live it the only one alive.
 #
 clean_serverauth()
 {
