@@ -9,6 +9,8 @@
 # Options:
 #     -v	-- Be verbose.
 #
+# This script is a good candidate for rc(8) startup task.
+#
 
 usage()
 {
