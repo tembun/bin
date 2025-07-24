@@ -46,7 +46,7 @@ clean_serverauth()
 	if [ $x_running -eq 0 ]; then
 		vlog "X server is not running.  Remove all .serverauth files"
 		rm -v $target_files
-		return 0;
+		return 0
 	fi
 	
 	# If we only have a .serverauth file for currently running server.

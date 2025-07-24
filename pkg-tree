@@ -24,7 +24,7 @@ print_tree() {
 				echo "$line" |sed 's/:$//'
 				first=0
 			fi
-			continue;
+			continue
 		fi
 		cutline=$(echo "$line" |sed 's/	//')
 		printf "%${ind}s${cutline}\n"

@@ -10,7 +10,7 @@ devs=$(dmesg |grep "ugen.*" |sed "s/:.*//" |sort |uniq)
 
 for dev in $devs; do
 	if [ -z $dev ]; then
-		break;
+		break
 	fi
 	mtch=$(usbconfig -d $dev dump_device_desc \
 	    |grep "bDeviceClass = 0x00ef")
