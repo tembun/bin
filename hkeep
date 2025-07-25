@@ -29,6 +29,18 @@ vlog()
 }
 
 #
+# Verbose rm(1).
+#
+# -v option for rm(1) is non-standard.
+#
+vrm()
+{
+	for file in $@; do
+		rm "$file" && echo "$file"
+	done
+}
+
+#
 # .serverauth.* files are created by Xserver(1) and should be deleted every
 # time the server is closed properly.  Thus, if Xserver(1) is not running now,
 # we can freely delete all of them.  And in case it is running, we should find
@@ -57,7 +69,7 @@ clean_serverauth()
 	
 	if [ $x_running -eq 0 ]; then
 		vlog "X server is not running.  Remove all .serverauth files"
-		rm -v $target_files
+		vrm $target_files
 		return 0
 	fi
 	
@@ -84,7 +96,7 @@ clean_serverauth()
 		if [ "$target" = "$most_recent_name" ]; then
 			continue
 		fi
-		rm -v "$target"
+		vrm "$target"
 	done
 }
 
