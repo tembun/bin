@@ -1,0 +1,14 @@
+#!/bin/sh
+
+#
+# gpb -- git(1) prune merged branches interactively.
+#
+
+branches=$(git branch --format='%(refname:short)' --merged)
+for br in $branches; do
+	printf "$br [y/N]: "
+	read del
+	if [ "$del" = "y" ] || [ "$del" = "Y" ]; then
+		git branch -d "$br"
+	fi
+done
