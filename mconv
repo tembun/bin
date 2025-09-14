@@ -10,7 +10,7 @@ usage()
 {
 	cat 1>&2 <<__EOF__
 Usage: $progname from to
-       $progname -t ext file ...
+       $progname [-d output_directory] -t ext file ...
 __EOF__
 	exit 2
 }
@@ -54,6 +54,20 @@ get_ext()
 	local _ext=$(echo "$file" |grep -Eo '\..+$' |sed 's/^\.//')
 	
 	setvar "$2" "$_ext"
+}
+
+get_target_path()
+{
+	local src="$1"
+	local target target_base
+	
+	get_ext "$src" ext
+	[ -n "$ext" ] || warn "$src extension not found; skip"
+	target_base=$(basename "$src" |sed "s~$ext$~$target_ext~")
+	[ ! -d "$target_dir" ] && target_dir=$(dirname "$src")
+	mkdir -p "$ta.rget_dir" || err "Can't create directory $target_dir"
+	target="$target_dir/$target_base"
+	echo "$target"
 }
 
 check_ffmpeg()
@@ -113,7 +127,7 @@ handle_args()
 	local final_srcs
 	
 	if [ -z "$target_ext" ]; then
-		[ $# -eq 2 ] || usage
+		[ $# -eq 2 ] && [ -z "$target_dir" ] || usage
 		src="$1"
 		tgt="$2"
 		preconv_check "$src" "$tgt"
@@ -125,9 +139,7 @@ handle_args()
 		do_conv "$src" "$tgt"
 	else
 		for src in $srcs; do
-			get_ext "$src" ext
-			[ -n "$ext" ] || warn "$src extension not found; skip"
-			tgt=$(echo "$src" |sed "s~$ext$~$target_ext~")
+			tgt=$(get_target_path "$src")
 			preconv_check "$src" "$tgt"
 		done
 		final_srcs="$srcs"
@@ -140,18 +152,17 @@ handle_args()
 			    final_srcs="$safe_srcs"
 		fi
 		for src in $final_srcs; do
-			get_ext "$src" ext
-			[ -n "$ext" ] || warn "$src extension not found; skip"
-			tgt=$(echo "$src" |sed "s~$ext$~$target_ext~")
+			tgt=$(get_target_path "$src")
 			do_conv "$src" "$tgt"
 		done
 	fi
 }
 
 check_ffmpeg
-while getopts "t:" o; do
+while getopts "t:d:" o; do
 	case $o in
 	t) target_ext="$OPTARG";;
+	d) target_dir="$OPTARG";;
 	?) usage;;
 	esac
 done
