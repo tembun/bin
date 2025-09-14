@@ -65,7 +65,7 @@ get_target_path()
 	[ -n "$ext" ] || warn "$src extension not found; skip"
 	target_base=$(basename "$src" |sed "s~$ext$~$target_ext~")
 	[ ! -d "$target_dir" ] && target_dir=$(dirname "$src")
-	mkdir -p "$ta.rget_dir" || err "Can't create directory $target_dir"
+	mkdir -p "$target_dir" || err "Can't create directory $target_dir"
 	target="$target_dir/$target_base"
 	echo "$target"
 }
