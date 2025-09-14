@@ -10,7 +10,7 @@ usage()
 {
 	cat 1>&2 <<__EOF__
 Usage: $progname from to
-       $progname [-d output_directory] -t ext file ...
+       $progname [-d output_directory] -e output_extension file ...
 __EOF__
 	exit 2
 }
@@ -159,9 +159,9 @@ handle_args()
 }
 
 check_ffmpeg
-while getopts "t:d:" o; do
+while getopts "e:d:" o; do
 	case $o in
-	t) target_ext="$OPTARG";;
+	e) target_ext="$OPTARG";;
 	d) target_dir="$OPTARG";;
 	?) usage;;
 	esac
