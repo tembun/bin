@@ -4,11 +4,41 @@
 # gpb -- git(1) prune merged branches interactively.
 #
 
+progname=$(basename $0)
+
+print_usage()
+{
+	cat 1>&2 <<__EOF__
+Usage: $progname [target_branch]
+       $progname -h
+__EOF__
+}
+
+help()
+{
+	print_usage
+	exit 0
+}
+
+usage()
+{
+	print_usage
+	exit 2
+}
+
 err()
 {
-	echo "$(basename $0): $@" 1>&2
+	echo "$progname: $@" 1>&2
 	exit 1
 }
+
+while getopts "h" o; do
+	case $o in
+	h) help ;;
+	?) usage ;;
+	esac
+done
+shift $((OPTIND - 1))
 
 target_br="$1"
 [ -z "$target_br" ] && target_br="master"
