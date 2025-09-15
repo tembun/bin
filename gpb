@@ -4,7 +4,18 @@
 # gpb -- git(1) prune merged branches interactively.
 #
 
-branches=$(git branch --format='%(refname:short)' --merged)
+err()
+{
+	echo "$(basename $0): $@" 1>&2
+	exit 1
+}
+
+target_br="$1"
+[ -z "$target_br" ] && target_br="master"
+git rev-parse --verify "$target_br" >/dev/null 2>&1 \
+    || err "Branch $target_br not found"
+branches=$(git branch --format='%(refname:short)' --merged "$target_br" \
+    |grep -v "^$target_br")
 for br in $branches; do
 	printf "$br [y/N]: "
 	read del
