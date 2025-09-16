@@ -2,63 +2,10 @@
 
 #
 # lf -- list file, i.e. watch it in pager (less(1)).
-# Usage: lf <filename> [jump line]
-#        lf [jump line]
-# In the second form of invocation the standard input is read.
-#
-# Consult less(1) to find the meaning for options that
-# are used in the script.
 # 
 
-#
-# List a specified file.
-#
-if [ -t 0 ]
-	then
-		if [ -z "$1" ];then
-			echo "[lf]: Specify a file to list." 1>&2
-			exit 1
-		fi
-
-		in="$1"
-		jmp="$2"
-		mod=1
-	#
-	# List a stdin.
-	#
-	else
-		jmp="$1"
-		mod=0
-fi
-
-if [ -z "$jmp" ]; then
-	if [ "$mod" = 0 ]; then
-		less -FRXfi
-	else
-		less -FRXfi "$in"
-	fi
+if [ -t 0 ]; then
+	less -FRXFi "$@"
 else
-	rowsterm=$(tput lines)
-	#
-	# Use `awk' trick in order to handle cases when there is
-	# no newline terminator in the file.
-	#
-	rowstxt=$(awk "1" "$in"|wc -l)
-	res=$((jmp+rowsterm-1))
-	if [ $rowstxt -le $rowsterm ]; then
-		if [ "$mod" = 0 ]; then
-			less -FRXfNi
-		else
-			less -FRXfNi "$in"
-		fi
-	else
-		if [ $res -gt $rowstxt ]; then
-			jmp=$((rowstxt-rowsterm+2))
-		fi
-		if [ "$mod" = 0 ]; then
-			less -FRXfNi "+$jmp"
-		else
-			less -FRXfNi "+$jmp" "$in"
-		fi
-	fi
+	less -FRXFi
 fi
