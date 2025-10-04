@@ -1,0 +1,78 @@
+#!/bin/sh
+
+#
+# mcut -- Cut media files.
+#
+
+progname=$(basename $0)
+TMP_DIR="/tmp"
+
+err()
+{
+	echo "$progname: $@" 1>&2
+	exit 1
+}
+
+usage()
+{
+	cat 1>&2 <<__EOF__
+Usage: $progname [-i extension] [-s hh:mm:ss[.ms]] [-e hh:mm:ss[.ms]] file
+
+Options:
+    -s -- cut start timestamp. If omitted, file is cut from the begining.
+    -e -- cut end timestamp. If omitted, file is cut to the end.
+    -i -- specify extension for backup files (.bak by default).
+          When empty string is used, no backup files will be done.
+__EOF__
+	exit 2
+}
+
+do_cut()
+{
+	local file="$1"
+	local start="$start"
+	local end="$end"
+	local tmp_prefix=$(mktemp -u "XXXXXXXX")
+	local tmp_name="$TMP_DIR/$tmp_prefix.$(basename $file)"
+	local start_opt end_opt
+	local backup_ext="bak"
+	
+	[ -n "$start" ] && start_opt="-ss $start"
+	[ -n "$end" ] && end_opt="-to $end"
+	ffmpeg -loglevel 8 $start_opt $end_opt -i "$file" -c copy "$tmp_name"
+	if [ $? -eq 0 ]; then
+		[ $bak_opt -eq 1 ] && backup_ext="$bak_ext"
+		if [ -n "$backup_ext" ]; then
+			mv "$file" "$file.$backup_ext"
+		fi
+		mv "$tmp_name" "$file"
+		echo "$file"
+	fi
+}
+
+bak_opt=0
+while getopts "i:s:e:" o; do
+	case $o in
+	s)
+		start="$OPTARG"
+		echo "$start" |grep -qE '^[0-9]+:[0-9]+:[0-9]+(\.[0-9]+)?$' || \
+		    err "Start timestamp must be in the format: hh:mm:ss[.ms]"
+		;;
+	e)
+		end="$OPTARG"
+		echo "$end" |grep -qE '^[0-9]+:[0-9]+:[0-9]+(\.[0-9]+)?$' || \
+		    err "End timestamp must be in the format: hh:mm:ss[.ms]"
+		;;
+	i)
+		bak_opt=1
+		bak_ext="$OPTARG"
+		;;
+	?) usage ;;
+	esac
+done
+shift $((OPTIND - 1))
+([ -n "$start" ] || [ -n "$end" ] && [ $# -eq 1 ]) || usage
+
+file="$1"
+[ -f "$file" ] || err "File not found: $file"
+do_cut "$file" "$start" "$stop"
