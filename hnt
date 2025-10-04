@@ -1,96 +1,91 @@
 #!/usr/local/bin/perl
 
-# hnt -- a script for printing out a contents of a file
-# with hints or show the content of a hint entry by the
-# specified index (which the first invoke-form produces).
-# takes a hint filename as a first argument. without any
-# further arguments passed, it outputs the overall contents
-# of a file. otherwise, it expects an entry number as a second
-# argument; it will print the content of this entry respectively.
 #
-# it also has an option "-a", which activates the append mode,
-# which adds a new hint to a file. this option must be specified
-# in the first place (and only then the filename). in this mode
-# the program expects you to provide a hint name as third argument
-# and the hint body in standard input.
+# hnt -- manage hint (.hnt) files.
 #
-# this program may be pretty handy especially with ~/bin/url utility:
-# hnt ./hint 3 |url
-# (assuming both `hnt` and `url` are in the PATH).
 
+use File::Basename;
 
+my $progname = basename($0);
 my $file = $ARGV[0];
 my $getidx;
 my $getmod = 0;
 my $append_mode = 0;
 
+my sub err {
+	my $args = join(" ", @_);
+	die "$progname: " . $args . "\n";
+}
+
+my sub usage {
+	print STDERR "Usage: $progname file [entry_index]\n",
+	    "       $progname file [-a title]\n";
+	exit 2;
+}
 
 my sub append_mode {
 	my $title = $ARGV[2];
 	
-	if (!$title) {
-		die "[hnt]: a hint title must be specified in append mode (-a).";
-	}
+	$title or usage();
 	
-	# open a file for both reading and writing.
-	open(\*HNTFILE, "+<", "$file")
-		or die "[hnt]: can't open a file $file.";
+	# Open file for both reading and writing.
+	open(\*HNTFILE, "+<", "$file") or err "Can't open file $file: $!";
 	
-	# reading two last characters from the target file
-	# in order to decide whether or not should we add
-	# some newlines in there.
+	#
+	# Reading two last characters from the target file in order to decide
+	# whether or not should we add some newlines in there.
+	#
 	my $last_two_chars;
 	seek HNTFILE, -2, 2;
 	read HNTFILE, $last_two_chars, 2;
 	
-	# if there are not enough newlines in the end of a file
-	# already, we insert as much as we need.
+	#
+	# If there are not enough newlines in the end of file already, we
+	# insert as much as we need.
+	#
 	if ($last_two_chars ne "\n\n") {
 		my $append_newlines = "\n";
 		
-		if (substr ($last_two_chars, -1) ne "\n") {
+		if (substr($last_two_chars, -1) ne "\n") {
 			$append_newlines .= "\n";
 		}
 		print HNTFILE "$append_newlines";
 	}
-	
 	print HNTFILE "$title\n";
 	
 	while (my $line = <STDIN>) {
-		# we're doing a trick: first chomp the line, which
-		# would remove the trailing newline, and then print
-		# the line into file with a newline explicitly
-		# specified. It helps us to keep newline in the end
-		# even if standard input doesn't include it.
+		#
+		# We're doing a trick: first chomp the line, which would remove
+		# the trailing newline, and then print the line into file with
+		# a newline explicitly specified. It helps us to keep newline
+		# in the end even if standard input doesn't include it.
+		#
 		chomp ($line);
 		print HNTFILE "\t$line\n";
 	}
-	
 	close (HNTFILE);
 }
 
 my sub read_mode {
-	if(not $append_mode and $getidx eq 0) {
-		die "[hnt]: hint entry index can't be 0.";
+	if ($append_mode and $getidx eq 0) {
+		err "Entry index can't be 0";
 	}
-	
-	open(FILE, $file) || die "[hnt]: Can't open $file: $!";
-	
+	open(FILE, $file) or err "Can't open $file: $!";
 	my %table;
 	my $title;
 	my $idx = 0;
-	while(my $line = <FILE>) {
-		# chomp the line for the same trick as in `&append_mode`.
+	while (my $line = <FILE>) {
+		# Chomp the line for the same trick as in &append_mode.
 		chomp ($line);
 		
-		my $frstch = substr($line, 0,1);
-		if ($frstch eq "") {next};
+		my $frstch = substr($line, 0, 1);
+		if ($frstch eq "") { next };
 		if ($frstch ne "\t") {
 			if ($getmod && $getidx == $idx) {
 				print "$table{$title}";
 				exit 0;
 			}
-			++$idx;
+			$idx++;
 			$title = $line;
 			if (!$getmod) {
 				print "$idx: $title\n";
@@ -104,7 +99,7 @@ my sub read_mode {
 	
 	if ($getmod) {
 		if ($getidx != $idx) {
-			die "[hnt]: wrong hint entry number specified.\n";
+			err "Wrong entry index specified";
 		}
 		else {
 			print "$table{$title}";
