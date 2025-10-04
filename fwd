@@ -1,23 +1,23 @@
 #!/bin/sh
-#a script for forwarding data into pipe.
-#actually, it's just an alias to `echo X |command`.
-#we are not able to perform this operation
-#within a shell script, 'cause we don't have
-#an ability to send a, say, string to stdin
-#(only file we can). so, in interactive mode
-#we still will do something like `xsc` and
-#then type some text we want to send to stdin
-#as usual, meanwhile we'll do `fwd "hello" xsc`
-#within a shell script in order to forward
-#"hello" string into the `xsc` program.
+
+#
+# fwd -- forward string into pipe.
+#
+# Alias to echo string |command.
+#
+
+usage()
+{
+	cat 1>&2 <<__EOF__
+Usage: $(basename $0) string command ...
+__EOF__
+	exit 2
+}
+
+[ $# -gt 2 ] || usage
 
 data="$1"
 shift
-com="$@"
+cmd="$@"
 
-if [ -z "$com" ];then
-	echo "fwd: specify a command to forward the data to." 1>&2
-	exit 1
-fi
-
-echo -n "$data" |$com
+echo -n "$data" |$cmd
