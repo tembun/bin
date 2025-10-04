@@ -28,7 +28,8 @@ __EOF__
 do_strip()
 {
 	local file="$1"
-	local tmp_name=$(mktemp -u "$TMP_DIR/XXXXXXXX_$(basename $file)")
+	local tmp_prefix=$(mktemp -u "XXXXXXXX")
+	local tmp_name="$TMP_DIR/$tmp_prefix.$(basename $file)"
 	
 	ffmpeg -loglevel 8 -i "$file" -map 0:a -c:a copy -map_metadata -1 \
 	    "$tmp_name" >/dev/null
