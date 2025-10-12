@@ -1,17 +1,19 @@
 #
 # medo -- manage media files in various ways.
 #
-# Features implemented: convertion (convert), cutting (cut), stripping (strip).
+# Features implemented: convertion (convert), cutting (cut), stripping (strip),
+# {de}muxing ({de}mux).
 #
 
 progname=$(basename "$0")
 TMP_DIR="/tmp"
 
-CONVERT_CMD="convert"
-CUT_CMD="cut"
-STRIP_CMD="strip"
-
 #=============== Common functions ===============
+
+prompt()
+{
+	printf "$@" 1>&2
+}
 
 warn()
 {
@@ -49,7 +51,7 @@ usage_template()
 usage()
 {
 	local usage_str_vars="CONVERT__USAGE_STR CUT__USAGE_STR
-STRIP__USAGE_STR"
+STRIP__USAGE_STR MUX__USAGE_STR DEMUX__USAGE_STR"
 	local usage_str
 	local idx=0
 	
@@ -73,6 +75,7 @@ check_ffmpeg()
 
 #=============== Convert ===============
 
+CONVERT_CMD="convert"
 CONVERT__USAGE_STR=$(cat <<__EOF__
 $CONVERT_CMD from to
 $CONVERT_CMD [-d output_directory] -e output_extension file ...
@@ -181,7 +184,7 @@ convert__handle_args()
 		tgt="$2"
 		convert__preconv_check "$src" "$tgt"
 		if [ -n "$existing" ]; then
-			printf "$tgt already exists. Overwrite? [y/N]: " 1>&2
+			prompt "$tgt already exists. Overwrite? [y/N]: "
 			read sure
 			[ "$sure" != "y" ] && [ "$sure" != "Y" ] && exit 0
 		fi
@@ -193,8 +196,8 @@ convert__handle_args()
 		done
 		final_srcs="$srcs"
 		if [ -n "$existing" ]; then
-			printf "Some files already exist:\n$existing" 1>&2
-			printf "Overwrite them? [y/N/q]: " 1>&2
+			prompt "Some files already exist:\n$existing"
+			prompt "Overwrite them? [y/N/q]: "
 			read sure
 			[ "$sure" = "q" ] && exit 0
 			[ "$sure" != "y" ] && [ "$sure" != "Y" ] && \
@@ -218,6 +221,7 @@ convert__cmd()
 
 #=============== Cut ===============
 
+CUT_CMD="cut"
 CUT__USAGE_STR=$(cat <<__EOF__
 $CUT_CMD [-i extension] [-s hh:mm:ss[.ms]] [-e hh:mm:ss[.ms]] file
 __EOF__
@@ -306,6 +310,7 @@ cut__cmd()
 
 #=============== Strip ===============
 
+STRIP_CMD="strip"
 STRIP__USAGE_STR=$(cat <<__EOF__
 $STRIP_CMD [-i extension] file ...
 __EOF__
@@ -379,6 +384,119 @@ strip__cmd()
 	strip__handle_args "$@"
 }
 
+#=============== Mux ===============
+
+MUX_CMD="mux"
+MUX__USAGE_STR=$(cat <<__EOF__
+$MUX_CMD file_1 file_2 output
+__EOF__
+)
+
+mux__usage()
+{
+	usage_template "$MUX__USAGE_STR"
+}
+
+mux__do_mux()
+{
+	local inp_1="$1"
+	local inp_2="$2"
+	local out="$3" do_out=1 sure_out
+	
+	if [ -f "$out" ]; then
+		prompt "$out already exists, overwrite? [y/N]:"
+		read sure_out
+		([ "$sure_out" != "y" ] && [ "$sure_out" != "Y" ]) && do_out=0
+	fi
+	
+	[ $do_out -eq 1 ] || return
+	ffmpeg -loglevel 8 -y -i "$inp_1" -i "$inp_2" -c:v copy -c:a aac "$out" \
+	    >/dev/null && echo "$out"
+}
+
+mux__handle_args()
+{
+	[ $# -eq 3 ] || mux__usage
+	
+	setvar inp_1 "$1"
+	setvar inp_2 "$2"
+	setvar out "$3"
+	[ -f "$inp_1" ] || err "File not found: $inp_1"
+	[ -f "$inp_2" ] || err "File not found: $inp_2"
+	
+	mux__do_mux "$inp_1" "$inp_2" "$out"
+}
+
+mux__cmd()
+{
+	local inp_1 inp_2 out
+	
+	mux__handle_args "$@"
+}
+
+#=============== Demux ===============
+
+DEMUX_CMD="demux"
+DEMUX__USAGE_STR=$(cat <<__EOF__
+$DEMUX_CMD file
+__EOF__
+)
+
+demux__usage()
+{
+	usage_template "$DEMUX__USAGE_STR"
+}
+
+demux__do_demux()
+{
+	local file="$1"
+	local name out_vid out_aud do_vid=1 do_aud=1 sure_vid sure_aud
+	
+	name=$(echo "$file" |sed 's/\(.*\)\..*/\1/')
+	out_vid="$name.m4v"
+	out_aud="$name.m4a"
+	
+	if [ -f "$out_vid" ]; then
+		prompt "$out_vid already exists, overwrite? [y/N]: "
+		read sure_vid
+		([ "$sure_vid" != "y" ] && [ "$sure_vid" != "Y" ]) && do_vid=0
+	fi
+	if [ -f "$out_aud" ]; then
+		prompt "$out_aud already exists, overwrite? [y/N]: "
+		read sure_aud
+		([ "$sure_aud" != "y" ] && [ "$sure_aud" != "Y" ]) && do_aud=0
+	fi
+	
+	if [ $do_vid -eq 1 ]; then
+		(ffmpeg -loglevel 8 -y -i "$file" -an -vcodec copy \
+		    "$out_vid" >/dev/null \
+		    && echo "$out_vid") &
+	fi
+	if [ $do_aud -eq 1 ]; then
+		(ffmpeg -loglevel 8 -y -i "$file" -vn -acodec copy "$out_aud" \
+		    >/dev/null \
+		    && echo "$out_aud") &
+	fi
+	wait
+}
+
+demux__handle_args()
+{
+	[ $# -eq 1 ] || demux__usage
+	
+	setvar file "$1"
+	[ -f "$file" ] || err "File not found: $file"
+	
+	demux__do_demux "$file"
+}
+
+demux__cmd()
+{
+	local file
+	
+	demux__handle_args "$@"
+}
+
 #=============== Main ===============
 
 check_ffmpeg
@@ -390,5 +508,7 @@ case $cmd in
 $CONVERT_CMD) convert__cmd "$@" ;;
 $CUT_CMD) cut__cmd "$@" ;;
 $STRIP_CMD) strip__cmd "$@" ;;
+$MUX_CMD) mux__cmd "$@" ;;
+$DEMUX_CMD) demux__cmd "$@" ;;
 *) usage ;;
 esac
