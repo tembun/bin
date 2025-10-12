@@ -1,9 +1,0 @@
-#!/bin/sh
-
-#
-# pkglbin -- list packages that were installed via pkg(8).
-#
-
-pkg query -a "%R %o" \
-    |sed -e '/^unknown-repository.*$/d' -e 's/.* //' \
-    |sort
