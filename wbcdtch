@@ -1,3 +1,0 @@
-#!/bin/sh
-service webcamd onestop
-/usr/local/sbin/virtual_oss_cmd /dev/dsp.ctl -R /dev/null
