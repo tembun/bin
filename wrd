@@ -94,13 +94,17 @@ get_entry_type()
 }
 
 list_dir()
-{	
-	ls -1 "$1"
+{
+	local dir="$1"
+	
+	ls -1 "$dir"
 }
 
 print_file()
 {
-	cat "$1" |xargs printf "%s\n"
+	local file="$1"
+	
+	xargs printf "%s\n" <"$file"
 }
 
 write_entry_path()
