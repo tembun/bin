@@ -193,7 +193,6 @@ del_entry_dir()
 {
 	local arg="$1"
 	local entry_path="$2"
-	local sure
 	
 	nested_entries=$(find "$entry_path" -type f |sed "s#$WRD_DIR##")
 	for nested_entry in $nested_entries; do
