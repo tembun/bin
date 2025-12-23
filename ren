@@ -99,6 +99,16 @@ rename()
 			return
 		fi
 	fi
+	# Even though mv(1) has -i option that does this, I believe it's better
+	# not to rely on it.
+	#
+	if [ -f "$newfile" ] || [ -d "$newfile" ]; then
+		prompt "$file -> $newfile, but it already exists. Are you sure? [y/N]"
+		read sure
+		if [ "$sure" != "y" ] && [ "$sure" != "Y" ]; then
+			return
+		fi
+	fi
 	mv "$file" "$newfile"
 	succ=$?
 	if [ $? -eq 0 ] && [ $verbose -eq 1 ]; then
