@@ -26,14 +26,7 @@ print_usage()
 {
 	cat <<__EOF__
 usage: $progname [-iv] <-e command ...> file ...
-       $progname -h
 __EOF__
-}
-
-help()
-{
-	print_usage
-	exit 0
 }
 
 usage()
@@ -130,13 +123,12 @@ handle_opts()
 {
 	local o
 	
-	while getopts "e:ivh" o; do
+	while getopts "e:iv" o; do
 	case $o in
 	e)	setvar cmds "$cmds
 $OPTARG" ;;
 	i)	setvar confirm 1 ;;
 	v)	setvar verbose 1 ;;
-	h)	help ;;
 	esac
 	done
 }
