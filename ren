@@ -133,11 +133,7 @@ handle_opts()
 	while getopts "e:iv" o; do
 	case $o in
 	e)
-		if [ $normalize -eq 1 ]; then
-			err \
-"-e option can not be used when invoked as ${NORMALIZE_PROGNAME}(1)
-Run as ${REN_PROGNAME}(1) to specify the commands"
-		fi
+		[ $normalize -eq 1 ] && usage
 		setvar cmds "$cmds
 $OPTARG"
 		;;
@@ -147,10 +143,10 @@ $OPTARG"
 	done
 }
 
-confirm=0
-verbose=0
 normalize=0
 [ "$progname" = "$NORMALIZE_PROGNAME" ] && normalize=1
+confirm=0
+verbose=0
 
 handle_opts "$@"
 shift $((OPTIND - 1))
