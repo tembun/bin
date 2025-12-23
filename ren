@@ -2,9 +2,12 @@
 
 #
 # ren -- bulk file renamer.
+# normalize -- bulk filename normalizer.
 #
 
 progname=$(basename "$0")
+REN_PROGNAME="ren"
+NORMALIZE_PROGNAME="normalize"
 
 warn()
 {
@@ -13,7 +16,10 @@ warn()
 
 prompt()
 {
-	printf "$@:" 1>&2
+	# Escape % (in case the prompt has it) to not confuse printf(1).
+	local formatted=$(echo "$@" |sed 's/%/&&/g')
+	
+	printf "${formatted}:" 1>&2
 }
 
 err()
@@ -25,7 +31,8 @@ err()
 print_usage()
 {
 	cat <<__EOF__
-usage: $progname [-iv] <-e command ...> file ...
+usage: $REN_PROGNAME [-iv] <-e command ...> file ...
+       $NORMALIZE_PROGNAME [-iv] file ...
 __EOF__
 }
 
@@ -125,8 +132,15 @@ handle_opts()
 	
 	while getopts "e:iv" o; do
 	case $o in
-	e)	setvar cmds "$cmds
-$OPTARG" ;;
+	e)
+		if [ $normalize -eq 1 ]; then
+			err \
+"-e option can not be used when invoked as ${NORMALIZE_PROGNAME}(1)
+Run as ${REN_PROGNAME}(1) to specify the commands"
+		fi
+		setvar cmds "$cmds
+$OPTARG"
+		;;
 	i)	setvar confirm 1 ;;
 	v)	setvar verbose 1 ;;
 	esac
@@ -135,9 +149,18 @@ $OPTARG" ;;
 
 confirm=0
 verbose=0
+normalize=0
+[ "$progname" = "$NORMALIZE_PROGNAME" ] && normalize=1
 
 handle_opts "$@"
 shift $((OPTIND - 1))
+# If invoked as 'normalize', set commands for normalizing file names.
+if [ $normalize -eq 1 ]; then
+	cmds="s/ /_/g
+s/[]\[()]/-/g
+s/[!?@#%;:,\"'\`]//g
+s/\&/8/g"
+fi
 [ -z "$cmds" ] && usage
 cmds=$(echo "$cmds" |sed '/^$/d')
 [ $# -lt 1 ] && usage
