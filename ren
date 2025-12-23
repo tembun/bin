@@ -63,7 +63,7 @@ $path"
 rename()
 {
 	local file="$1"
-	local sure succ
+	local sure
 	
 	# Together with trailing '/'.
 	# Empty if current directory (in order to tell if no changes were done).
@@ -110,7 +110,6 @@ rename()
 		fi
 	fi
 	mv "$file" "$newfile"
-	succ=$?
 	if [ $? -eq 0 ] && [ $verbose -eq 1 ]; then
 		echo "$file -> $newfile"
 	fi
