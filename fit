@@ -1,7 +1,0 @@
-#!/bin/sh
-
-#
-# fit -- print 80 dashes to check if text fits the screen.
-#
-
-printf "%80s\n" |tr " " "-"
