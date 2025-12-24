@@ -31,8 +31,8 @@ err()
 print_usage()
 {
 	cat <<__EOF__
-usage: $REN_PROGNAME [-iv] <-e command ...> file ...
-       $NORMALIZE_PROGNAME [-iv] file ...
+usage: $REN_PROGNAME [-iqv] <-e command ...> file ...
+       $NORMALIZE_PROGNAME [-iqv] file ...
 __EOF__
 }
 
@@ -89,7 +89,7 @@ rename()
 	# Since olddir already has a '/'.
 	newfile="${olddir}${newbase}"
 	if [ "$file" = "$newfile" ]; then
-		warn "$file is not affected"
+		[ $quiet -ne 1 ] && warn "$file is not affected"
 		return
 	fi
 	if [ $confirm -eq 1 ]; then
@@ -110,7 +110,7 @@ rename()
 		fi
 	fi
 	mv "$file" "$newfile"
-	if [ $? -eq 0 ] && [ $verbose -eq 1 ]; then
+	if [ $verbose -eq 1 ] && [ $? -eq 0 ]; then
 		echo "$file -> $newfile"
 	fi
 }
@@ -130,7 +130,7 @@ handle_opts()
 {
 	local o
 	
-	while getopts "e:iv" o; do
+	while getopts "e:iqv" o; do
 	case $o in
 	e)
 		[ $normalize -eq 1 ] && usage
@@ -138,6 +138,7 @@ handle_opts()
 $OPTARG"
 		;;
 	i)	setvar confirm 1 ;;
+	q)	setvar quiet 1 ;;
 	v)	setvar verbose 1 ;;
 	?)	usage ;;
 	esac
@@ -147,7 +148,10 @@ $OPTARG"
 normalize=0
 [ "$progname" = "$NORMALIZE_PROGNAME" ] && normalize=1
 confirm=0
+# Be verbose.  Print files as they renamed.
 verbose=0
+# Be quiet.  Don't inform about files that were not affected.
+quiet=0
 
 handle_opts "$@"
 shift $((OPTIND - 1))
