@@ -139,6 +139,7 @@ $OPTARG"
 		;;
 	i)	setvar confirm 1 ;;
 	v)	setvar verbose 1 ;;
+	?)	usage ;;
 	esac
 	done
 }
