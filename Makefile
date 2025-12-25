@@ -8,7 +8,6 @@ INSTALL= install
 INSTALL_LINK_OPT= -l h
 INSTALL_MODE_OPT= -m
 
-LINKS_f= fj
 LINKS_fw= fwj
 LINKS_r= rj
 LINKS_ren= normalize
