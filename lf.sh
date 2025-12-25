@@ -5,7 +5,7 @@
 # 
 
 if [ -t 0 ]; then
-	less -FRXFi "$@"
+	less -FRXi "$@"
 else
-	less -FRXFi
+	less -FRXi
 fi
