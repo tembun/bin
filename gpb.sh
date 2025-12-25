@@ -9,7 +9,7 @@ progname=$(basename "$0" .sh)
 print_usage()
 {
 	cat 1>&2 <<__EOF__
-Usage: $progname [target_branch]
+usage: $progname [target_branch]
        $progname -h
 __EOF__
 }

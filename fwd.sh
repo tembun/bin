@@ -11,7 +11,7 @@ progname=$(basename "$0" .sh)
 usage()
 {
 	cat 1>&2 <<__EOF__
-Usage: $progname string command ...
+usage: $progname string command ...
 __EOF__
 	exit 2
 }

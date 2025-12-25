@@ -42,7 +42,7 @@ err()
 print_usage()
 {
 	cat 1>&2 <<__EOF__
-Usage: $progname [-p | -u | -a | -A | -e | -E] [password_entry]
+usage: $progname [-p | -u | -a | -A | -e | -E] [password_entry]
        $progname -d password_entry ...
        $progname -h
 __EOF__

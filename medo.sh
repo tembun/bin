@@ -45,7 +45,7 @@ usage_template()
 	local options="$2"
 	
 	
-	echo "Usage: $usage_str" 1>&2
+	echo "usage: $usage_str" 1>&2
 	[ -n "$options" ] && options_template "$options"
 	exit 2
 }
@@ -57,7 +57,7 @@ STRIP__USAGE_STR MUX__USAGE_STR DEMUX__USAGE_STR"
 	local usage_str
 	local idx=0
 	
-	printf "Usage: " 1>&2
+	printf "usage: " 1>&2
 	for usage_str_var in $usage_str_vars; do
 		first_padded_line_idx=1
 		[ $idx -eq 0 ] && first_padded_line_idx=2

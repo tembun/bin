@@ -19,7 +19,7 @@ err()
 print_usage()
 {
 	cat 1>&2 <<__EOF__
-Usage: $progname [delay]
+usage: $progname [delay]
        $progname -f
        $progname -h
 __EOF__

@@ -18,7 +18,7 @@ my sub err {
 }
 
 my sub usage {
-	print STDERR "Usage: $progname file [entry_index]\n",
+	print STDERR "usage: $progname file [entry_index]\n",
 	    "       $progname file [-a title]\n";
 	exit 2;
 }

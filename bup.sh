@@ -78,7 +78,7 @@ strats_split=$(printf "$strats" |perl -0pe 's/\n/ | /g')
 
 strat="$1"
 if [ -z "$strat" ] || ! (echo "$strats" |grep -q "^$strat$"); then
-	echo "Usage: $progname <$strats_split>"
+	echo "usage: $progname <$strats_split>"
 	exit 1
 fi
 

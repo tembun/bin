@@ -8,7 +8,7 @@ progname=$(basename "$0" .sh)
 dup_dir="$HOME/tmp"
 
 if [ $# -eq 0 ]; then
-	echo "Usage: $progname file ..." 1>&2
+	echo "usage: $progname file ..." 1>&2
 	exit 2
 fi
 
