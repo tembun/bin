@@ -8,7 +8,6 @@ INSTALL= install
 INSTALL_LINK_OPT= -l h
 INSTALL_MODE_OPT= -m
 
-LINKS_fw= fwj
 LINKS_ren= normalize
 
 all: ${SRCS:C/\.[^.]*$//}
