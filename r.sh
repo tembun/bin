@@ -15,7 +15,7 @@ rep="$1"
 shift
 pths=$@
 
-progname=$(printf "$0" |sed 's/.*\///')
+progname=$(basename "$0" .sh)
 
 if [ -z "$pat" ] || [ -z "$pths" ]; then
 	echo "Usage: $progname pattern replacement path ..." 1>&2

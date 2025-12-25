@@ -7,7 +7,7 @@
 # {de}muxing ({de}mux).
 #
 
-progname=$(basename "$0")
+progname=$(basename "$0" .sh)
 TMP_DIR="/tmp"
 
 #=============== Common functions ===============

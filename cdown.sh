@@ -6,7 +6,7 @@
 # I.e. visualization of sleep(1).
 #
 
-progname=$(basename "$0")
+progname=$(basename "$0" .sh)
 DEFAULT_DELAY=3
 forever_flag=0
 

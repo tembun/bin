@@ -4,7 +4,7 @@
 # wrd -- simple password manager.
 #
 
-progname=$(basename $0)
+progname=$(basename "$0" .sh)
 
 WRD_DIR="$HOME/var/wrd"
 UNSAFE_COPIER="xsc"

@@ -4,7 +4,7 @@
 # gpb -- git(1) prune merged branches interactively.
 #
 
-progname=$(basename $0)
+progname=$(basename "$0" .sh)
 
 print_usage()
 {

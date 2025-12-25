@@ -5,7 +5,7 @@
 # normalize -- bulk filename normalizer.
 #
 
-progname=$(basename "$0")
+progname=$(basename "$0" .sh)
 REN_PROGNAME="ren"
 NORMALIZE_PROGNAME="normalize"
 

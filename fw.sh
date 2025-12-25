@@ -5,7 +5,7 @@
 # fwj -- case-insensitive version of `fw'.
 #
 
-progname=$(printf "$0" |sed 's/.*\///')
+progname=$(basename "$0" .sh)
 
 if [ $# -eq 0 ]; then
 	echo "Usage: $progname pattern [path ...]" 1>&2

@@ -4,7 +4,7 @@
 # ipoo - manage IP and VPN.
 #
 
-progname=$(basename "$0")
+progname=$(basename "$0" .sh)
 SHOWPUB_CMD="pub"
 VPN_CMD="vpn"
 VPN_STATUS_CMD="status"

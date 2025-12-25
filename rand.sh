@@ -4,7 +4,7 @@
 # rand - random string generator.
 #
 
-progname=$(basename "$0")
+progname=$(basename "$0" .sh)
 
 err()
 {
