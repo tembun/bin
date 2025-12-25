@@ -10,6 +10,7 @@
 # issued for actual fast searching.
 
 
+progname=$(basename "$0" .sh)
 TOP="/usr/src"
 INDEX_DIR="/usr/local/share/src"
 INDEX_NAME="base.index"
@@ -22,7 +23,7 @@ INDEX="$INDEX_DIR/$INDEX_NAME"
 #  `[-a] file ...': find sources for specified files.
 #                   With `-a' all the found paths are printed.
 usage() {
-	echo "usage: src -u [-v]
+	echo "usage: $progname -u [-v]
        src [-a] file ..."
 	exit 1
 }

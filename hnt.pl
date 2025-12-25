@@ -6,7 +6,7 @@
 
 use File::Basename;
 
-my $progname = basename($0);
+my $progname = basename($0, ".pl");
 my $file = $ARGV[0];
 my $getidx;
 my $getmod = 0;

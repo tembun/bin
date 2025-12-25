@@ -12,9 +12,11 @@
 # This script is a good candidate for rc(8) startup task.
 #
 
+progname=$(basename "$0" .sh)
+
 usage()
 {
-	echo "Usage: $(basename $0) [-v] [path ...]" 1>&2
+	echo "Usage: $progname [-v] [path ...]" 1>&2
 	exit 2
 }
 
@@ -23,9 +25,7 @@ usage()
 #
 vlog()
 {
-	if [ $v_flg -eq 1 ]; then
-		echo "$(basename $0): $target_dir: $1"
-	fi
+	[ $v_flg -eq 1 ] && echo "$prgname: $target_dir: $1"
 }
 
 #

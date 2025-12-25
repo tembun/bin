@@ -6,10 +6,12 @@
 # Alias to echo string |command.
 #
 
+progname=$(basename "$0" .sh)
+
 usage()
 {
 	cat 1>&2 <<__EOF__
-Usage: $(basename $0) string command ...
+Usage: $progname string command ...
 __EOF__
 	exit 2
 }

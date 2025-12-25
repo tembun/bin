@@ -4,9 +4,11 @@
 # sz -- sort files/directories by their disk space in human-readable format.
 #
 
+progname=$(basename "$0" .sh)
+
 usage()
 {
-	echo "Usage: $(basename $0) <-fd> [path ...]" 1>&2
+	echo "Usage: $progname -f|-d [path ...]" 1>&2
 	exit 2
 }
 

@@ -59,6 +59,7 @@
 # Resulting tar(1) with the backup is compressed with xz(1).
 #
 
+progname=$(basename "$0" .sh)
 cfg_file_sys="/usr/local/etc/buprc"
 cfg_file_home="$HOME/.buprc"
 
@@ -77,7 +78,7 @@ strats_split=$(printf "$strats" |perl -0pe 's/\n/ | /g')
 
 strat="$1"
 if [ -z "$strat" ] || ! (echo "$strats" |grep -q "^$strat$"); then
-	echo "Usage: bup <$strats_split>"
+	echo "Usage: $progname <$strats_split>"
 	exit 1
 fi
 
