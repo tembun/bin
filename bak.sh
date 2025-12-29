@@ -56,6 +56,17 @@
 # files that will be excluded from backup (see `exclude' section) for every
 # strategy.
 #
+# The main invocation form of the script is:
+#     bak [-c] <strategy>
+# This will make a backup file according to strategy named <strategy>.
+# If -c option is specified, a computed configuration for this strategy will be
+# printed and no backup will be done.
+#
+# The second invocation form is:
+#     bak -C
+# which will print all the configuration files that were found, raw.  No backup
+# will be done.
+#
 # Resulting tar(1) with the backup is compressed with xz(1).
 
 progname=$(basename "$0" .sh)
@@ -84,7 +95,10 @@ usage()
 {
 	# Use printf(1) instead of echo(1) to suppress trailing newline.
 	local strats_split=$(printf "$strats" |perl -0pe 's/\n/ | /g')	
-	echo "Usage: $progname $strats_split" 1>&2
+	cat 1>&2 <<__EOF__
+Usage: $progname [-c] $strats_split
+       $progname -C
+__EOF__
 	exit 1
 }
 
@@ -315,10 +329,34 @@ abort_handler() {
 }
 trap abort_handler INT TERM
 
+handle_opts()
+{
+	local o
+	
+	while getopts "Cc" o; do
+	case $o in
+	C)	setvar show_all_cfg 1 ;;
+	c)	setvar show_strat_cfg 1 ;;
+	?)	usage ;;
+	esac
+	done
+}
+
+show_all_cfg=0
+show_strat_cfg=0
+
 check_at_least_one_file "$CFG_FILES" || \
     err "At least one config file should be present: $CFG_FILES_FMT"
 cfg=$(parse_cfg_files "$CFG_FILES")
 strats=$(get_cfg_strats "$cfg") || err "No strategies found in $CFG_FILES_FMT"
+
+# Handle options only when $strats is computed, because it may be potentially
+# used in usage() if option is unknonwn.
+handle_opts $@
+shift $((OPTIND - 1))
+
+[ $show_all_cfg -eq 1 ] && { cat $CFG_FILES 2>/dev/null; exit 0; }
+
 [ $# -eq 0 ] && usage
 strat="$1"
 contains "$strat" "$strats" || usage
@@ -327,6 +365,9 @@ strat_cfg=$(get_strat_cfg "$cfg" "$strat") || \
 dump_ports_to=$(get_dump_ports_to "$strat_cfg")
 include_strat=$(get_strat_cfg_prop "$strat_cfg" "$STRAT_PROP_INCLUDE" 1) || \
     err "Strategy property '$STRAT_PROP_INCLUDE' is required"
+
+[ $show_strat_cfg -eq 1 ] && { echo "$strat_cfg"; exit 0; }
+
 include_files=$(get_include_files "$include_strat" "$dump_ports_to")
 include_cmd=$(tar_format_include_options "$include_files")
 exclude_files=$(get_exclude_files "$cfg" "$strat_cfg")
