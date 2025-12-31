@@ -37,7 +37,7 @@ check_freebsd()
 # check_prog prog
 check_prog()
 {
-	which "$1" >/dev/null 2>&1
+	[ -x $(which "$1" 2>/dev/null) ]
 }
 
 # check_num value
