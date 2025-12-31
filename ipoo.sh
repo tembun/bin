@@ -12,8 +12,10 @@ VPN_ON_CMD="on"
 VPN_OFF_CMD="off"
 SHOWPUB_URL="zx2c4.com/ip"
 SHOWPUB_REQ="curl"
-VPN_STATUS_IF="wg"
-VPN_STATUS_IF_STATUS_ARGS="show wg0 endpoints"
+VPN_ENDPOINT_IF="wg"
+VPN_ENDPOINT_IF_ARGS="show wg0 endpoints"
+VPN_STATUS_IF="ifconfig"
+VPN_STATUS_IF_STATUS_ARGS="wg0"
 VPN_MANAGER_IF="wg-quick"
 VPN_MANAGER_IF_ON="up wg0"
 VPN_MANAGER_IF_OFF="down wg0"
@@ -57,24 +59,15 @@ usage()
 	exit 2
 }
 
-check_SHOWPUB_REQ()
-{
-	[ -x $(which "$SHOWPUB_REQ") ]
-}
-
 check_root()
 {
 	[ $(id -u) = "0" ]
 }
 
-check_vpn_status_if()
+# check_prog prog
+check_prog()
 {
-	[ -x $(which "$VPN_STATUS_IF") ]
-}
-
-check_vpn_manager_if()
-{
-	[ -x $(which "$VPN_MANAGER_IF") ]
+	[ -x $(which "$1" 2>/dev/null) ]
 }
 
 require_root_net()
@@ -82,14 +75,22 @@ require_root_net()
 	check_root || err "Only root can do the networking"
 }
 
+require_vpn_endpoint_if()
+{
+	check_prog "${VPN_STATUS_IF}" || \
+	    err "You need ${VPN_ENDPOINT_IF} to get VPN endpoint"
+}
+
 require_vpn_status_if()
 {
-	check_vpn_status_if || err "You need $VPN_STATUS_IF to check VPN status"
+	check_prog "${VPN_STATUS_IF}" || \
+	    err "You need ${VPN_STATUS_IF} to check VPN status"
 }
 
 require_vpn_manager_if()
 {
-	check_vpn_manager_if || err "You need $VPN_MANAGER_IF to manage VPN"
+	check_prog "${VPN_MANAGER_IF}" || \
+	    err "You need ${VPN_MANAGER_IF} to manage VPN"
 }
 
 make_log_dir()
@@ -102,39 +103,43 @@ make_log_dir()
 
 get_pub_ip()
 {
-	$SHOWPUB_REQ "$SHOWPUB_URL"
+	${SHOWPUB_REQ} "${SHOWPUB_URL}"
 }
 
 vpn_endpoint()
 {
-	$VPN_STATUS_IF $VPN_STATUS_IF_STATUS_ARGS 2>/dev/null |cut -d '	' -f 2
+	${VPN_ENDPOINT_IF} ${VPN_ENDPOINT_IF_ARGS} 2>/dev/null |cut -f 2
+}
+
+check_vpn_status()
+{
+	[ -n "$(${VPN_STATUS_IF} ${VPN_STATUS_IF_STATUS_ARGS} 2>/dev/null)" ]
 }
 
 vpn_on()
 {
-	$VPN_MANAGER_IF $VPN_MANAGER_IF_ON
+	${VPN_MANAGER_IF} ${VPN_MANAGER_IF_ON}
 }
 
 vpn_off()
 {
-	$VPN_MANAGER_IF $VPN_MANAGER_IF_OFF
+	${VPN_MANAGER_IF} ${VPN_MANAGER_IF_OFF}
 }
 
 handle_showpub_cmd()
 {
-	check_SHOWPUB_REQ || err "You need $SHOWPUB_REQ to get your public IP"
+	check_prog "${SHOWPUB_REQ}" || \
+	    err "You need ${SHOWPUB_REQ} to get your public IP"
 	get_pub_ip
 }
 
 handle_vpn_status_cmd()
 {
 	local endpoint
-	
 	require_vpn_status_if
 	
-	endpoint=$(vpn_endpoint)
-	if [ -n "$endpoint" ]; then
-		echo "VPN is on ($endpoint)"
+	if check_vpn_status; then
+		echo "VPN is on"
 	else
 		echo "VPN is off"
 	fi
@@ -145,11 +150,12 @@ handle_vpn_on_cmd()
 	local log endpoint
 	
 	require_root_net
+	require_vpn_endpoint_if
 	require_vpn_manager_if
 	
 	endpoint=$(vpn_endpoint)
-	if [ -n "$endpoint" ]; then
-		echo "VPN is already on ($endpoint)"
+	if [ -n "${endpoint}" ]; then
+		echo "VPN is already on (${endpoint})"
 		exit
 	fi
 	
