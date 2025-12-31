@@ -8,6 +8,7 @@
 #
 # List of commands:
 #     push -	push current branch changes to all remote refs.
+#           	If a remote has a push-url set to `NOPUSH', no push is done.
 #     prune -	prune merged branches interactively.
 #     ignore -	manage gitignore(5).
 #               Options:
@@ -94,12 +95,26 @@ PUSH__USAGE_STR=$(cat <<__EOF__
 $PUSH_CMD [git-push(1) options]
 __EOF__
 )
+# Don't push if push url for a git-remote(1) is set to this value.
+PUSH_NOPUSH_URL="NOPUSH"
+
+# git_check_push_url remote
+push__check_push_url()
+{
+	[ $(git remote get-url --push "$1") != "${PUSH_NOPUSH_URL}" ]
+}
 
 push__do_push()
 {
 	for remote in $(git remote); do
-		git push $@ $remote HEAD
+		if ! push__check_push_url "${remote}"; then
+			warn "Push is disabled for ${remote}"
+			continue
+		fi
+		echo "Push ${remote}"
+		git push $@ $remote HEAD &
 	done
+	wait
 }
 
 push__cmd()
