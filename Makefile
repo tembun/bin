@@ -23,6 +23,7 @@ BINDIR= bin
 BIN_MODE= 0755
 MANDIR= share/man/man1
 MAN_MODE= 0644
+MANCOMPRESS= gzip -cn
 SHAREDIR= share
 SHARE_MODE= 0444
 INSTALL= install
@@ -50,11 +51,12 @@ ${PREFIX}/${BINDIR}/${src_base}: ${src_file}
 .endif
 
 src_man=${src}/${src_base}.1
-.OPTIONAL: ${PREFIX}/${MANDIR}/${src_base}.1
+.OPTIONAL: ${PREFIX}/${MANDIR}/${src_base}.1.gz
 .if ${is_dir} == "1" && exists(${src_man})
-${PREFIX}/${MANDIR}/${src_base}.1: ${src_man}
+${PREFIX}/${MANDIR}/${src_base}.1.gz: ${src_man}
 	@mkdir -p $$(dirname ${.TARGET})
-	${INSTALL} ${INSTALL_MODE_OPT} ${MAN_MODE} ${.ALLSRC} ${.TARGET}
+	${MANCOMPRESS} ${.ALLSRC} >${.TARGET}
+	@chmod ${MAN_MODE} ${.TARGET}
 .endif
 
 SHARE_SRCS=
@@ -75,6 +77,6 @@ share_targets=${SHARE_SRCS:T:C/^/${PREFIX}\/${SHAREDIR}\/${SHARE_SUBDIR}\//}
 .endif
 
 .PHONY: ${src_base}
-${src_base}: ${PREFIX}/${BINDIR}/${src_base} ${PREFIX}/${MANDIR}/${src_base}.1\
+${src_base}: ${PREFIX}/${BINDIR}/${src_base} ${PREFIX}/${MANDIR}/${src_base}.1.gz\
     ${share_targets}
 .endfor
