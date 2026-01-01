@@ -9,4 +9,9 @@
 # if you want to make use of regular expression, you should specify -E option.
 #
 
-GREP_COLOR="1;7" grep --exclude-dir=".git" --color=always -FRnI "$@"
+if [ -t 0 ]; then
+	recurs_opt="R"
+	linenum_opt="n"
+fi
+GREP_COLOR="1;7" grep --exclude-dir=".git" --color=always \
+    -F${recurs_opt}${linenum_opt}I "$@"
