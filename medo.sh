@@ -175,7 +175,7 @@ convert__handle_opts()
 
 convert__handle_args()
 {
-	local srcs=$(echo "$@" |sort |uniq)
+	local srcs=$(echo "$@" |sort -u)
 	local src tgt sure
 	local final_srcs
 	local existing safe_srcs
