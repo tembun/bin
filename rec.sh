@@ -66,16 +66,18 @@ prepare_aud_dev()
 {
 	local snd_src="$1"
 	local dev
+	if [ "${snd_src}" = "${SND_SRC_MIC}" ]; then
+		dev="monitor"
+	elif [ "${snd_src}" = "${SND_SRC_DESK}" ]; then
+		dev="mic"
+	else
+		return
+	fi
 	setvar orig_dev $(mixer \
 	    |grep src \
 	    |tr -s ' ' \
 	    |cut -d ' ' -f 2)
 	setvar need_aud_restore 1
-	if [ "${snd_src}" = "${SND_SRC_MIC}" ]; then
-		dev="monitor"
-	elif [ "${snd_src}" ]; then
-		dev="mic"
-	fi
 	mixer "${dev}".recsrc=set >/dev/null || return 1
 }
 
