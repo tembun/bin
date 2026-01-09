@@ -14,4 +14,4 @@ if [ -t 0 ]; then
 	linenum_opt="n"
 fi
 GREP_COLOR="1;7" grep --exclude-dir=".git" --color=always \
-    -F${recurs_opt}${linenum_opt}I "$@"
+    -FI${recurs_opt}${linenum_opt} "$@"
