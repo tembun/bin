@@ -92,18 +92,15 @@ convert__usage()
 convert__get_ext()
 {
 	local file=$(basename "$1")
-	local ext_var="$2"
 	local ext=$(echo "$file" |grep -Eo '\..+$' |sed 's/^\.//')
-	
-	setvar "$ext_var" "$ext"
+	echo "${ext}"
 }
 
 convert__get_target_path()
 {
 	local src="$1"
 	local target target_base
-	
-	convert__get_ext "$src" ext
+	local ext=$(convert__get_ext "$src")
 	[ -n "$ext" ] || warn "$src extension not found; skip"
 	target_base=$(basename "$src" |sed "s~$ext$~$target_ext~")
 	[ ! -d "$target_dir" ] && target_dir=$(dirname "$src")
@@ -132,8 +129,8 @@ convert__do_conv()
 	setvar conv_src "$src"
 	setvar conv_tgt "$tgt"
 	
-	convert__get_ext "$src" src_ext
-	convert__get_ext "$tgt" tgt_ext
+	local src_ext=$(convert__get_ext "$src")
+	local tgt_ext=$(convert__get_ext "$tgt")
 	convert__set_ffmpeg_opts "$src_ext" "$tgt_ext"
 	#
 	# Put this job in the background to be able to receive SIGINFO
