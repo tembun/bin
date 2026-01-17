@@ -74,7 +74,7 @@ get_templates()
 # get_template_names ext
 get_template_basenames()
 {
-	get_templates "${ext}" |xargs -L 1 basename |sed 's/\.[^.]*$//'	
+	get_templates "${ext}" |xargs -L 1 basename |sed 's/\.[^.]*$//'
 }
 
 # get_template_path ext name
