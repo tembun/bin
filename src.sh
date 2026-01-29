@@ -49,7 +49,6 @@ if [ "$1" = "-u" ]; then
 	if [ "$2" = "-v" ]; then
 		verbose="1"
 	fi
-	
 	# Delete previously created index file if it exists.
 	rm -f "$INDEX" 2>/dev/null
 	# Create a path for index if it doesn't exist.
@@ -58,7 +57,6 @@ if [ "$1" = "-u" ]; then
 		echo "[src]: can not create directory for index file $INDEX_DIR" 1>&2
 		exit 1
 	fi
-	
 	# Since index file will be situated under /usr/local/share, only
 	# root user will be able to modify the file. We want to check if
 	# we have appropriate permissions for this before we start.
@@ -66,7 +64,6 @@ if [ "$1" = "-u" ]; then
 		echo "[src]: can not create an index file at $INDEX" 1>&2
 		exit 1
 	fi
-	
 	# Collect all the Makefiles we possibly will be interested in.
 	# Also avoiding lots of Makefiles that are for tests.
 	for mf in $(find ${TOP}/bin/ ${TOP}/sbin/ \
@@ -80,7 +77,6 @@ if [ "$1" = "-u" ]; then
 	            -maxdepth 4)
 	do
 		mfd=$(dirname $mf)
-		
 		# Now we want to filter the Makefiles we don't need.
 		# We're only looking for those ones that are for producing
 		# binaries (PROG or PROG_CXX) or scripts (man(1), for example,
@@ -94,12 +90,10 @@ if [ "$1" = "-u" ]; then
 		                	-f $mf \
 		           	2>/dev/null \
 		           	|sed "s/\.//")
-	    	
 	    	# If no such paths, then just skip this Makefile.
 	    	if [ "$sea_paths" = " ." ]; then
 	    		continue
 	    	fi
-	    	
 	    	seas=" ."
 	    	# Now we try to filter out all the search paths
 	    	# that do not actually contain the source code.
@@ -120,14 +114,12 @@ if [ "$1" = "-u" ]; then
 					seas="$seas $sea"
 				fi
 	    	done
-	    	
 	    	# Obtain binary destination path and its hard links.
 			bin_and_links=$(make -C "$mfd" \
 		                     	-V '${BINDIR}/${PROGNAME} ${LINKS}' \
 		                     	-f $mf \
 		                	2>/dev/null
 			)
-			
 			# We have included scripts in our search along with binaries,
 			# but a lot of Makefiles produce scripts that are used for
 			# building, I guess, and they are not system-wide.
@@ -140,7 +132,6 @@ if [ "$1" = "-u" ]; then
 			   || [ "$bin_and_links" = "/usr/sbin/ " ]; then
 				continue
 			fi
-			
 			# Build up an index line entry.
 			index_line=$(echo "$bin_and_links$seas" |sed 's/  / /g')
 			if [ "$verbose" = "1" ];
@@ -149,7 +140,6 @@ if [ "$1" = "-u" ]; then
 			fi
 		fi
 	done
-	
 	exit 0
 fi
 
@@ -169,7 +159,6 @@ fi
 if [ "$1" = "-a" ]; then
 	all_mode="1"
 	shift
-	
 	if [ "$#" = "0" ]; then
 		usage
 	fi
@@ -179,12 +168,10 @@ fi
 tgts="$@"
 for tgt in $tgts;do
 	tgt_path=$(which $tgt 2>/dev/null)
-	
 	if [ "$?" != "0" ]; then
 		echo "[src]: $tgt is not found" 1>&2
 		continue
 	fi
-	
 	# Resolve symlinks (like tar(1) is a symlink to /usr/bin/bsdtar).
 	# And also escape characters like "[" and "" for executables
 	# like [(1) (which is also test(1)) (otherwise, they will be
@@ -192,21 +179,17 @@ for tgt in $tgts;do
 	tgt_path=$(realpath "$tgt_path" \
 	           |sed -e 's/\[/\\\[/g' \
 	                -e 's/\./\\\./g')
-	
 	# Search the target path in the index file.
 	# Looking only into the first part of line, where binaries and links.
 	srcs=$(grep "$tgt_path .*\. " "$INDEX")
-	
 	if [ -z "$srcs" ]; then
 		echo "[src]: no sources found for $tgt" 1>&2
 		continue
 	fi
-	
 	srcs=$(echo "$srcs" |sed 's/.* \. //')
 	# Print only first path or all of them if appropriate flag is set.
 	for src in $srcs;do
 		echo "$src"
-		
 		if [ "$all_mode" != "1" ]; then
 			break
 		fi

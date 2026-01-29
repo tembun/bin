@@ -40,7 +40,6 @@ usage()
 do_count()
 {
 	local num="$1"
-	
 	echo "$num"
 	sleep 1
 }
@@ -48,7 +47,6 @@ do_count()
 count_finite()
 {
 	local delay="$1"
-	
 	for num in $(seq "$delay"); do
 		do_count "$num"
 	done
@@ -57,7 +55,6 @@ count_finite()
 count_forever()
 {
 	local counter=1
-	
 	while true; do
 		do_count "$counter"
 		counter=$((counter+1))
@@ -67,7 +64,6 @@ count_forever()
 handle_finite_mode()
 {
 	local delay="$1"
-	
 	[ -z "$delay" ] && delay="$DEFAULT_DELAY"
 	count_finite "$delay"
 }
@@ -80,7 +76,6 @@ handle_forever_mode()
 handle_opts()
 {
 	local o
-	
 	while getopts 'fh' o; do
 		case $o in
 		f)	setvar forever_flag 1 ;;

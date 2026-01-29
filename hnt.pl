@@ -25,12 +25,9 @@ my sub usage {
 
 my sub append_mode {
 	my $title = $ARGV[2];
-	
 	$title or usage();
-	
 	# Open file for both reading and writing.
 	open(\*HNTFILE, "+<", "$file") or err "Can't open file $file: $!";
-	
 	#
 	# Reading two last characters from the target file in order to decide
 	# whether or not should we add some newlines in there.
@@ -38,21 +35,18 @@ my sub append_mode {
 	my $last_two_chars;
 	seek HNTFILE, -2, 2;
 	read HNTFILE, $last_two_chars, 2;
-	
 	#
 	# If there are not enough newlines in the end of file already, we
 	# insert as much as we need.
 	#
 	if ($last_two_chars ne "\n\n") {
 		my $append_newlines = "\n";
-		
 		if (substr($last_two_chars, -1) ne "\n") {
 			$append_newlines .= "\n";
 		}
 		print HNTFILE "$append_newlines";
 	}
 	print HNTFILE "$title\n";
-	
 	while (my $line = <STDIN>) {
 		#
 		# We're doing a trick: first chomp the line, which would remove
@@ -77,7 +71,6 @@ my sub read_mode {
 	while (my $line = <FILE>) {
 		# Chomp the line for the same trick as in &append_mode.
 		chomp ($line);
-		
 		my $frstch = substr($line, 0, 1);
 		if ($frstch eq "") { next };
 		if ($frstch ne "\t") {
@@ -96,7 +89,6 @@ my sub read_mode {
 			$table{$title} .= "$line\n";
 		}
 	}
-	
 	if ($getmod) {
 		if ($getidx != $idx) {
 			err "Wrong entry index specified";

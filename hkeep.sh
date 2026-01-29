@@ -50,12 +50,10 @@ clean_serverauth()
 {
 	target_files=$(find "$target_dir" -depth 1 -maxdepth 1 -type f \
 	    -name "\.serverauth*")
-	
 	if [ -z "$target_files" ]; then
 		vlog "No .serverauth files found"
 		return 0
 	fi
-	
 	#
 	# Xserver(1) creates a unix(4) socket for every active display in
 	# /tmp/.X11-unix/X*.  If at least one such socket is found, we can tell
@@ -66,22 +64,18 @@ clean_serverauth()
 	else
 		x_running=0
 	fi
-	
 	if [ $x_running -eq 0 ]; then
 		vlog "X server is not running.  Remove all .serverauth files"
 		vrm $target_files
 		return 0
 	fi
-	
 	# If we only have a .serverauth file for currently running server.
 	if [ $(echo "$target_files" |wc -l) -eq 1 ]; then
 		vlog "No unnecessary .serverauth files found"
 		return 0
 	fi
-	
 	most_recent_name=""
 	most_recent_ts=0
-	
 	for target in $target_files; do
 		ts=$(stat -f %B "$target")
 		if [ $ts -ge $most_recent_ts ]; then
@@ -89,9 +83,7 @@ clean_serverauth()
 			most_recent_name="$target"
 		fi
 	done
-	
 	vlog ".serverauth file for currently running server: $most_recent_name"
-	
 	for target in $target_files; do
 		if [ "$target" = "$most_recent_name" ]; then
 			continue
@@ -124,6 +116,5 @@ for target_dir in $target_dirs; do
 		echo "$target_dir is not a directory" 1>&2
 		continue
 	fi
-	
 	clean_serverauth "$target_dir"
 done

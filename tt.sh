@@ -63,11 +63,9 @@ list_all() {
 			idx=$((idx+1))
 			is_start=1
 		fi
-		
 		if [ $is_print -ne 1 ]; then
 			continue
 		fi
-		
 		date_diff $st $en
 		if [ $is_long -eq 1 ]; then
 			date_st=$(date -r "$st")

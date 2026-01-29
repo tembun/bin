@@ -18,7 +18,6 @@ prompt()
 {
 	# Escape % (in case the prompt has it) to not confuse printf(1).
 	local formatted=$(echo "$@" |sed 's/%/&&/g')
-	
 	printf "${formatted}:" 1>&2
 }
 
@@ -45,7 +44,6 @@ usage()
 get_filepaths()
 {
 	local path paths
-	
 	miss=0
 	for file in "$@"; do
 		path=$(realpath "$file" 2>/dev/null)
@@ -64,7 +62,6 @@ rename()
 {
 	local file="$1"
 	local sure
-	
 	# Together with trailing '/'.
 	# Empty if current directory (in order to tell if no changes were done).
 	#
@@ -129,7 +126,6 @@ rename_files()
 handle_opts()
 {
 	local o
-	
 	while getopts "e:iqv" o; do
 	case $o in
 	e)

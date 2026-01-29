@@ -68,7 +68,6 @@ get_templates()
 	else
 		echo "${all_templates}" |grep "\.${ext}$"
 	fi
-	
 }
 
 # get_template_names ext

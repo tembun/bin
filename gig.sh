@@ -28,7 +28,6 @@ prompt()
 warn()
 {
 	local extra_prefix=""
-	
 	[ -n "$cmd" ] && extra_prefix="$cmd: "
 	echo "$progname: ${extra_prefix}$@" 1>&2
 }
@@ -44,8 +43,6 @@ usage_template()
 	local usage_str=$(echo "$1" |sed -e "s/^/$progname /" \
 	    -e '2,$s/^/       /')
 	local options="$2"
-	
-	
 	echo "usage: $usage_str" 1>&2
 	[ -n "$options" ] && options_template "$options"
 	exit 2
@@ -57,7 +54,6 @@ usage()
 IGNORE__USAGE_STR"
 	local usage_str
 	local idx=0
-	
 	printf "usage: " 1>&2
 	for usage_str_var in $usage_str_vars; do
 		first_padded_line_idx=1
@@ -135,7 +131,6 @@ prune__do_prune()
 {
 	local target_branch="$1"
 	local sure
-	
 	git rev-parse --verify "$target_branch" >/dev/null 2>&1 \
 	    || err "Target branch not found: $target_branch"
 	branches=$(git branch --format='%(refname:short)' --merged \
@@ -154,7 +149,6 @@ prune__do_prune()
 prune__handle_args()
 {
 	local target_branch="$1"
-	
 	if [ -z "$target_branch" ]; then
 		for mb_br in main master $(git branch --show-current); do
 			if git_check_branch "$mb_br"; then
@@ -198,7 +192,6 @@ ignore__validate_ignorefile()
 ignore__add()
 {
 	local added
-	
 	for add in "$@"; do
 		added="$added
 $add"
@@ -210,7 +203,6 @@ ignore__delete()
 {
 	local content=$(cat "$IGNORE_FILE")
 	local pattern_escaped
-	
 	for pattern in "$@"; do
 		pattern_escaped=$(echo "$pattern" |sed 's#/#\\/#g')
 		content=$(echo "$content" |sed "/^${pattern_escaped}$/d")
@@ -246,7 +238,6 @@ ignore__handle_list()
 ingnore__handle_opts()
 {
 	local o
-	
 	while getopts "adl" o; do
 		case $o in
 		a)	setvar mode "$IGNORE_MODE_ADD" ;;
@@ -269,7 +260,6 @@ ignore__handle_args()
 ignore__cmd()
 {
 	local mode
-	
 	ingnore__handle_opts "$@"
 	shift $((OPTIND - 1))
 	[ -n "$mode" ] || ignore__usage

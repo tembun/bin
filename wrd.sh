@@ -63,7 +63,6 @@ usage()
 check_sure()
 {
 	local sure="$1"
-	
 	if [ "$sure" = "y" ] || [ "$sure" = "Y" ]; then
 		echo "1"
 	else
@@ -74,7 +73,6 @@ check_sure()
 get_entry_path()
 {
 	local arg="$1"
-	
 	invalid=$(echo "$arg" |grep -E '\.(\/|\.$)')
 	[ -n "$invalid" ] && err "Wrong syntax for password entry: $arg"
 	echo "$WRD_DIR/$arg"
@@ -83,7 +81,6 @@ get_entry_path()
 get_entry_type()
 {
 	local entry_path="$1"
-	
 	if [ -f "$entry_path" ]; then
 		echo "$ENTRY_TYPE_FILE"
 	elif [ -d "$entry_path" ]; then
@@ -96,14 +93,12 @@ get_entry_type()
 list_dir()
 {
 	local dir="$1"
-	
 	ls -1 "$dir"
 }
 
 print_file()
 {
 	local file="$1"
-	
 	xargs printf "%s\n" <"$file"
 }
 
@@ -112,7 +107,6 @@ write_entry_path()
 	local entry_path="$1"
 	local is_add="$2"
 	local new_prefix multiline_suffix
-	
 	[ "$is_add" = "0" ] && new_prefix="new "
 	[ "$read_multiline_pass" = "1" ] && multiline_suffix=" (multiline)"
 	prompt "Enter ${new_prefix}password for ${arg}${multiline_suffix}:"
@@ -129,12 +123,10 @@ handle_addedit_mode()
 {
 	local is_add="$1"
 	shift
-	
 	local arg="$1"
 	local entry_path=$(get_entry_path "$arg")
 	local entry_type=$(get_entry_type "$entry_path")
 	local pass dir_edit_prefix
-	
 	[ $# -eq 1 ] || usage
 	case $entry_type in
 	$ENTRY_TYPE_FILE)
@@ -155,19 +147,16 @@ handle_addedit_mode()
 			err "$arg doesn't exist"
 		fi
 	esac
-	
 }
 
 handle_print_mode()
 {
 	local arg="$1"
 	local entry_path entry_type
-	
 	[ $# -le 1 ] || usage
 	[ -z "$arg" ] && entry_path="$WRD_DIR"
 	entry_path=$(get_entry_path "$arg")
 	entry_type=$(get_entry_type "$entry_path")
-	
 	case $entry_type in
 	$ENTRY_TYPE_FILE)	print_file "$entry_path" ;;
 	$ENTRY_TYPE_DIR)	list_dir "$entry_path" ;;
@@ -180,7 +169,6 @@ del_entry_file()
 	local arg="$1"
 	local entry_path="$2";
 	local sure
-	
 	prompt "Delete $arg? [y/N]:"
 	read sure
 	sure=$(check_sure "$sure")
@@ -193,7 +181,6 @@ del_entry_dir()
 {
 	local arg="$1"
 	local entry_path="$2"
-	
 	nested_entries=$(find "$entry_path" -type f |sed "s#$WRD_DIR##")
 	for nested_entry in $nested_entries; do
 		del_entry "$nested_entry"
@@ -205,7 +192,6 @@ del_entry()
 	local arg="$1"	
 	local entry_path=$(get_entry_path "$arg")
 	local entry_type=$(get_entry_type "$entry_path")
-	
 	case $entry_type in
 	$ENTRY_TYPE_FILE)	del_entry_file "$arg" "$entry_path" ;;
 	$ENTRY_TYPE_DIR)	del_entry_dir "$arg" "$entry_path" ;;
@@ -216,7 +202,6 @@ del_entry()
 handle_del_mode()
 {
 	[ $# -gt 0 ] || usage
-	
 	for entry in $@; do
 		del_entry "$entry"
 	done
@@ -225,14 +210,12 @@ handle_del_mode()
 unsafe_copy()
 {
 	local path="$1"
-	
 	$UNSAFE_COPIER <"$path"
 }
 
 safe_copy()
 {
 	local path="$1"
-	
 	$SAFE_COPIER <"$path"
 	warn "Password copied into clipboard and will be wiped after \
 $SAFE_COPY_DURATION seconds"
@@ -241,12 +224,10 @@ $SAFE_COPY_DURATION seconds"
 handle_copy_mode()
 {
 	local arg="$1"
-	
 	[ $# -le 1 ] || usage
 	[ -z "$arg" ] && entry_path="$WRD_DIR"
 	entry_path=$(get_entry_path "$arg")
 	entry_type=$(get_entry_type "$entry_path")
-	
 	case $entry_type in
 	$ENTRY_TYPE_FILE)
 		if [ "$copy_mode_safe" = "1" ]; then
@@ -263,7 +244,6 @@ handle_copy_mode()
 handle_opts()
 {
 	local o
-	
 	while getopts "puaAeEdh" o; do
 		case $o in
 		p)	setvar mode "$MODE_PRINT" ;;

@@ -101,7 +101,6 @@ do_rec()
 handle_opts()
 {
 	local o
-	
 	while getopts "f:ms" o; do
 	case $o in
 	f)

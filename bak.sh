@@ -213,7 +213,6 @@ get_strat_cfg_prop()
 	if [ $required -eq 1 ]; then
 		test -n "$prop_val"
 	fi
-	
 }
 
 # get_dump_ports_to strat_cfg
@@ -332,7 +331,6 @@ trap abort_handler INT TERM
 handle_opts()
 {
 	local o
-	
 	while getopts "Cc" o; do
 	case $o in
 	C)	setvar show_all_cfg 1 ;;

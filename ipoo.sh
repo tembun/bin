@@ -96,7 +96,6 @@ require_vpn_manager_if()
 make_log_dir()
 {
 	local path="$1"
-	
 	mkdir -p $(dirname "$path")
 	mktemp "$path"
 }
@@ -137,7 +136,6 @@ handle_vpn_status_cmd()
 {
 	local endpoint
 	require_vpn_status_if
-	
 	if check_vpn_status; then
 		echo "VPN is on"
 	else
@@ -148,17 +146,14 @@ handle_vpn_status_cmd()
 handle_vpn_on_cmd()
 {
 	local log endpoint
-	
 	require_root_net
 	require_vpn_endpoint_if
 	require_vpn_manager_if
-	
 	endpoint=$(vpn_endpoint)
 	if [ -n "${endpoint}" ]; then
 		echo "VPN is already on (${endpoint})"
 		exit
 	fi
-	
 	log=$(make_log_dir "$VPN_ON_LOG_TMPL")
 	vpn_on >"$log" 2>&1 || err "Error turning VPN on.
 Logs available at: $log"
@@ -168,15 +163,12 @@ Logs available at: $log"
 handle_vpn_off_cmd()
 {
 	local log
-	
 	require_root_net
 	require_vpn_manager_if
-	
 	if [ -z "$(vpn_endpoint)" ]; then
 		echo "VPN is already off"
 		exit
 	fi
-	
 	log=$(make_log_dir "$VPN_OFF_LOG_TMPL")
 	vpn_off >"$log" 2>&1 || err "Error turning VPN off.
 Logs available at: $log"
@@ -185,9 +177,7 @@ Logs available at: $log"
 handle_vpn_cmd()
 {
 	local cmd="$1"
-	
 	[ $# -ne 0 ] || vpn_usage
-	
 	shift
 	case $cmd in
 	$VPN_STATUS_CMD)	handle_vpn_status_cmd ;;
