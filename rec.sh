@@ -105,7 +105,7 @@ handle_opts()
 	while getopts "f:ms" o; do
 	case $o in
 	f)
-		check_num "$OPTARG" || \
+		check_num "$OPTARG" ||
 		    err "Framerate should be a number: $OPTARG"
 		setvar framerate "$OPTARG"
 		;;

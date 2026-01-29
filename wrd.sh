@@ -292,7 +292,7 @@ if [ -z "$mode" ]; then
 		mode="$MODE_PRINT"
 	elif [ $# -eq 1 ]; then
 		entry_type=$(get_entry_type $(get_entry_path "$1"))
-		if [ "$copy_mode_safe" = "1" ] && \
+		if [ "$copy_mode_safe" = "1" ] &&
 		    [ "$entry_type" = "$ENTRY_TYPE_DIR" ]; then
 			mode="$MODE_PRINT"
 		else

@@ -82,7 +82,7 @@ rename()
 	# (we know exactly which command it is).
 	#
 	for cmd in $cmds; do
-		newbase=$(echo "$newbase" |sed $cmd) || \
+		newbase=$(echo "$newbase" |sed $cmd) ||
 		    err "Wrong command: '$cmd'"
 	done
 	unset IFS

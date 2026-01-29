@@ -114,7 +114,7 @@ convert__set_ffmpeg_opts()
 	local ext_src="$1"
 	local ext_tgt="$2"
 	
-	if ([ "$ext_src" = "mkv" ] && [ "$ext_tgt" = "mp4" ]) || \
+	if ([ "$ext_src" = "mkv" ] && [ "$ext_tgt" = "mp4" ]) ||
 	    ([ "$ext_src" = "mp4" ] && [ "$ext_tgt" = "mkv" ]); then
 		setvar ffmpeg_opts "-c copy -map 0"
 	fi
@@ -199,7 +199,7 @@ convert__handle_args()
 			prompt "Overwrite them? [y/N/q]: "
 			read sure
 			[ "$sure" = "q" ] && exit 0
-			[ "$sure" != "y" ] && [ "$sure" != "Y" ] && \
+			[ "$sure" != "y" ] && [ "$sure" != "Y" ] &&
 			    final_srcs="$safe_srcs"
 		fi
 		for src in $final_srcs; do
@@ -272,12 +272,12 @@ cut__handle_opts()
 		case $o in
 		s)
 			setvar start "$OPTARG"
-			echo "$start" |grep -qE '^[0-9]+:[0-9]+:[0-9]+(\.[0-9]+)?$' || \
+			echo "$start" |grep -qE '^[0-9]+:[0-9]+:[0-9]+(\.[0-9]+)?$' ||
 		    	err "Start timestamp must be in the format: hh:mm:ss[.ms]"
 			;;
 		e)
 			setvar end "$OPTARG"
-			echo "$end" |grep -qE '^[0-9]+:[0-9]+:[0-9]+(\.[0-9]+)?$' || \
+			echo "$end" |grep -qE '^[0-9]+:[0-9]+:[0-9]+(\.[0-9]+)?$' ||
 		    	err "End timestamp must be in the format: hh:mm:ss[.ms]"
 			;;
 		i)

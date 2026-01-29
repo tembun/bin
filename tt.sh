@@ -93,7 +93,7 @@ if [ $# -eq 0 ] || [ $is_long -eq 1 ]; then
 fi
 
 if [ "$1" = "a" ]; then
-	if [ ! -f $tt_file ] || \
+	if [ ! -f $tt_file ] ||
 	    [ $(tail -n2 $tt_file |head -n1) != "a" ]; then
 		echo -e "a\n$(date +%s)" >>$tt_file
 		exit 0
@@ -105,7 +105,7 @@ if [ "$1" = "a" ]; then
 fi
 
 if [ "$1" = "b" ]; then
-	if [ -f $tt_file ] && \
+	if [ -f $tt_file ] &&
 	    [ $(tail -n2 $tt_file |head -n1) = "a" ]; then
 		en=$(date +%s)
 		st=$(tail -n1 $tt_file)

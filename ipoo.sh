@@ -77,19 +77,19 @@ require_root_net()
 
 require_vpn_endpoint_if()
 {
-	check_prog "${VPN_STATUS_IF}" || \
+	check_prog "${VPN_STATUS_IF}" ||
 	    err "You need ${VPN_ENDPOINT_IF} to get VPN endpoint"
 }
 
 require_vpn_status_if()
 {
-	check_prog "${VPN_STATUS_IF}" || \
+	check_prog "${VPN_STATUS_IF}" ||
 	    err "You need ${VPN_STATUS_IF} to check VPN status"
 }
 
 require_vpn_manager_if()
 {
-	check_prog "${VPN_MANAGER_IF}" || \
+	check_prog "${VPN_MANAGER_IF}" ||
 	    err "You need ${VPN_MANAGER_IF} to manage VPN"
 }
 
@@ -128,7 +128,7 @@ vpn_off()
 
 handle_showpub_cmd()
 {
-	check_prog "${SHOWPUB_REQ}" || \
+	check_prog "${SHOWPUB_REQ}" ||
 	    err "You need ${SHOWPUB_REQ} to get your public IP"
 	get_pub_ip
 }

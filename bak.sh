@@ -297,14 +297,14 @@ tar_format_exclude_options()
 dump_ports()
 {
 	local to="$1"
-	pkg prime-origins >"$to" || \
+	pkg prime-origins >"$to" ||
 	    err "Can't dump ports list to $to"
 }
 
 # validate_root_prop strat root
 validate_root_prop()
 {
-	[ "$2" = "1" ] && ! check_root && \
+	[ "$2" = "1" ] && ! check_root &&
 	    err "Only root can use strategy '$1'"
 }
 
@@ -345,7 +345,7 @@ handle_opts()
 show_all_cfg=0
 show_strat_cfg=0
 
-check_at_least_one_file "$CFG_FILES" || \
+check_at_least_one_file "$CFG_FILES" ||
     err "At least one config file should be present: $CFG_FILES_FMT"
 cfg=$(parse_cfg_files "$CFG_FILES")
 strats=$(get_cfg_strats "$cfg") || err "No strategies found in $CFG_FILES_FMT"
@@ -360,10 +360,10 @@ shift $((OPTIND - 1))
 [ $# -eq 0 ] && usage
 strat="$1"
 contains "$strat" "$strats" || usage
-strat_cfg=$(get_strat_cfg "$cfg" "$strat") || \
+strat_cfg=$(get_strat_cfg "$cfg" "$strat") ||
     err "Configuration for strategy '$strat' is empty"
 dump_ports_to=$(get_dump_ports_to "$strat_cfg")
-include_strat=$(get_strat_cfg_prop "$strat_cfg" "$STRAT_PROP_INCLUDE" 1) || \
+include_strat=$(get_strat_cfg_prop "$strat_cfg" "$STRAT_PROP_INCLUDE" 1) ||
     err "Strategy property '$STRAT_PROP_INCLUDE' is required"
 
 [ $show_strat_cfg -eq 1 ] && { echo "$strat_cfg"; exit 0; }
@@ -378,7 +378,7 @@ out=$(get_strat_cfg_out "$strat" "$strat_cfg")
 validate_out "$out"
 
 [ -n "$dump_ports_to" ] && dump_ports "$dump_ports_to"
-time tar $exclude_cmd -cJvf "$out" $include_cmd || \
+time tar $exclude_cmd -cJvf "$out" $include_cmd ||
     { err "Error during backup"; cleanup_dumped_port_list; }
 echo "$out"
 cleanup_dumped_port_list
