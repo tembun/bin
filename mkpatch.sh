@@ -74,7 +74,7 @@ make_patch()
 	# First stage all the files in order to have newly added (untracked)
 	# files in the git-diff(1) output.
 	if [ "${from_diff}" = "1" ]; then
-		git add -A || err "Can't git-add(1) all the files"
+		git add -A >/dev/null || err "Can't git-add(1) all the files"
 	fi
 	git "${diff_cmd}" HEAD --output="${out_short}" || \
 		"Can't make the patch and write it to ${out_short}"
@@ -85,7 +85,7 @@ make_patch()
 		[ "${verbose}" = "1" ] && echo "${out_full}"
 	fi
 	if [ "${from_diff}" = "1" ]; then
-		git reset HEAD || "Can't git-reset(1) to the HEAD"
+		git reset HEAD >/dev/null || "Can't git-reset(1) to the HEAD"
 	fi
 }
 
