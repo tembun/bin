@@ -7,9 +7,26 @@
 progname=$(basename "${0}" .sh)
 PATCHES_DIR="${HOME}/dev/patches"
 
-err()
+prompt()
+{
+	# Escape % (in case the prompt has it) to not confuse printf(1).
+	local formatted=$(echo "$@" |sed 's/%/&&/g')
+	printf "${formatted}:" 1>&2
+}
+
+prompt_overwrite()
+{
+	prompt "${1} already exists.  Overwrite? [y/N]"
+}
+
+warn()
 {
 	echo "${progname}: ${@}" 1>&2
+}
+
+err()
+{
+	warn "${@}"
 	exit 1
 }
 
@@ -52,6 +69,12 @@ ensure_git_repo()
 	check_git_repo || err "Not inside a git repository"
 }
 
+check_sure()
+{
+	local val="${1}"
+	test "${val}" = "y" || test "${val}" = "Y"
+}
+
 prepare_out_dir()
 {
 	local dir_arg="${1}"
@@ -71,6 +94,7 @@ make_patch()
 	local out_full="${out_short}.full"
 	local diff_cmd="show"
 	local revision="HEAD"
+	local sure
 	[ "${from_diff}" = "1" ] && diff_cmd="diff"
 	[ -n "${commit}" ] && revision="${commit}"
 	ensure_git_repo
@@ -79,13 +103,46 @@ make_patch()
 	if [ "${from_diff}" = "1" ]; then
 		git add -A >/dev/null || err "Can't git-add(1) all the files"
 	fi
-	git "${diff_cmd}" "${revision}" --output="${out_short}" || \
-		"Can't make the patch and write it to ${out_short}"
-	[ "${verbose}" = "1" ] && echo "${out_short}"
+	sure="1"
+	if [ -f "${out_short}" ]; then
+		prompt_overwrite "${out_short}"
+		sure=""
+		read sure
+		if check_sure "${sure}"; then
+			sure="1"
+		else
+			sure="0"
+		fi
+	fi
+	if [ "${sure}" = "1" ]; then
+		git "${diff_cmd}" "${revision}" --output="${out_short}"
+		if [ "${?}" -ne "0" ]; then
+			warn "Can't make the patch and write it to ${out_short}"
+		elif [ "${verbose}" = "1" ]; then
+			echo "${out_short}"
+		fi
+	fi
+
 	if [ "${need_full}" = "1" ]; then
-		git "${diff_cmd}" -U99999 "${revision}" --output="${out_full}" || \
-		    "Can't make the full patch and write it to ${out_full}"
-		[ "${verbose}" = "1" ] && echo "${out_full}"
+		sure="1"
+		if [ -f "${out_full}" ]; then
+			prompt_overwrite "${out_full}"
+			sure=""
+			read sure
+			if check_sure "${sure}"; then
+				sure="1"
+			else
+				sure="0"
+			fi
+		fi
+		if [ "${sure}" = "1" ]; then
+			git "${diff_cmd}" -U99999 "${revision}" --output="${out_full}"
+			if [ "${?}" -ne "0" ]; then
+				warn "Can't make the full patch and write it to ${out_full}"
+			elif [ "${verbose}" = "1" ]; then
+				echo "${out_full}"
+			fi
+		fi
 	fi
 	if [ "${from_diff}" = "1" ]; then
 		# -C and -c are mutually exclusive, we can safely use HEAD.
