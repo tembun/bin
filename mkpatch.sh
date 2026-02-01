@@ -16,7 +16,7 @@ err()
 usage()
 {
 	cat 1>&2 <<__EOF__
-usage: ${progname} -[CFv] [-d directory] patch-name
+usage: ${progname} -[CFv] [-c commit] [-d directory] patch-name
 
 By default it makes a patch out of the last commit.  In addition, the
 full-context patch is also created.  By default, patches are saved under
@@ -25,6 +25,7 @@ ${PATCHES_DIR}.
 Options:
     -C			Make a patch of out the current working tree.
     -F			Don't additionally produce a full-context patch.
+    -c			Make a patch out of the commit rather than HEAD.
     -v			Print patch files as they are created.
     -d directory	Put resulting patches in the specified directory.
 __EOF__
@@ -69,38 +70,50 @@ make_patch()
 	local out_short="${out_dir}/${name}.patch"
 	local out_full="${out_short}.full"
 	local diff_cmd="show"
+	local revision="HEAD"
 	[ "${from_diff}" = "1" ] && diff_cmd="diff"
+	[ -n "${commit}" ] && revision="${commit}"
 	ensure_git_repo
 	# First stage all the files in order to have newly added (untracked)
 	# files in the git-diff(1) output.
 	if [ "${from_diff}" = "1" ]; then
 		git add -A >/dev/null || err "Can't git-add(1) all the files"
 	fi
-	git "${diff_cmd}" HEAD --output="${out_short}" || \
+	git "${diff_cmd}" "${revision}" --output="${out_short}" || \
 		"Can't make the patch and write it to ${out_short}"
 	[ "${verbose}" = "1" ] && echo "${out_short}"
 	if [ "${need_full}" = "1" ]; then
-		git "${diff_cmd}" -U99999 HEAD --output="${out_full}" || \
+		git "${diff_cmd}" -U99999 "${revision}" --output="${out_full}" || \
 		    "Can't make the full patch and write it to ${out_full}"
 		[ "${verbose}" = "1" ] && echo "${out_full}"
 	fi
 	if [ "${from_diff}" = "1" ]; then
+		# -C and -c are mutually exclusive, we can safely use HEAD.
 		git reset HEAD >/dev/null || "Can't git-reset(1) to the HEAD"
+	fi
+}
+
+validate_opts()
+{
+	if [ "${from_diff}" = "1" ] && [ -n "${commit}" ]; then
+		err "-C and -c options are mutually exclusive"
 	fi
 }
 
 handle_opts()
 {
 	local o
-	while getopts 'CFd:v' o; do
+	while getopts 'CFc:d:v' o; do
 		case "${o}" in
 		C)	setvar from_diff 1 ;;
 		F)	setvar need_full 0 ;;
+		c)	setvar commit "${OPTARG}" ;;
 		d)	setvar out_dir_opt "${OPTARG}" ;;
 		v)	setvar verbose 1 ;;
 		?)	usage ;;
 		esac
 	done
+	validate_opts
 }
 
 ensure_prog git
