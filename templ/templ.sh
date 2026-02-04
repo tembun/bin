@@ -9,7 +9,7 @@
 # specified in the reverse (slightlyt unnatural) order.
 #
 
-TEMPLATES_DIR="usr/local/share/templ"
+TEMPLATES_DIR="/usr/local/share/templ"
 
 progname=$(basename "$0" .sh)
 
