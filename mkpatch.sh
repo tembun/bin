@@ -34,6 +34,7 @@ usage()
 {
 	cat 1>&2 <<__EOF__
 usage: ${progname} -[CFv] [-c commit] [-d directory] patch-name
+       ${progname} -l [-d directory]
 
 By default it makes a patch out of the last commit.  In addition, the
 full-context patch is also created.  By default, patches are saved under
@@ -43,8 +44,9 @@ Options:
     -C			Make a patch of out the current working tree.
     -F			Don't additionally produce a full-context patch.
     -c			Make a patch out of the commit rather than HEAD.
-    -v			Print patch files as they are created.
     -d directory	Put resulting patches in the specified directory.
+    -l			List patches in the default (or -d) directory.
+    -v			Print patch files as they are created.
 __EOF__
 	exit 2
 }
@@ -73,6 +75,11 @@ check_sure()
 {
 	local val="${1}"
 	test "${val}" = "y" || test "${val}" = "Y"
+}
+
+list_patches()
+{
+	ls "${out_dir}"
 }
 
 prepare_out_dir()
@@ -152,6 +159,11 @@ make_patch()
 
 validate_opts()
 {
+	if [ "${list}" = "1" ] && ([ "${from_diff}" = "1" ] || \
+	    [ "${need_full}" = "1" ] || [ "${commit}" = "1" ] || \
+	    [ "${verbose}" = "1" ]); then
+		usage
+	fi
 	if [ "${from_diff}" = "1" ] && [ -n "${commit}" ]; then
 		err "-C and -c options are mutually exclusive"
 	fi
@@ -160,12 +172,13 @@ validate_opts()
 handle_opts()
 {
 	local o
-	while getopts 'CFc:d:v' o; do
+	while getopts 'CFc:d:lv' o; do
 		case "${o}" in
 		C)	setvar from_diff 1 ;;
 		F)	setvar need_full 0 ;;
 		c)	setvar commit "${OPTARG}" ;;
 		d)	setvar out_dir_opt "${OPTARG}" ;;
+		l)	setvar list 1 ;;
 		v)	setvar verbose 1 ;;
 		?)	usage ;;
 		esac
@@ -179,7 +192,16 @@ shift $((OPTIND - 1))
 diff_cmd='show'
 [ -z "${need_full}" ] && need_full=1
 [ -z "${verbose}" ] && verbose=0
-[ ${#} -ne 1 ] && usage
-patch_name="${1}"
+
+if [ "${list}" != "1" ]; then
+	[ ${#} -ne 1 ] && usage
+	patch_name="${1}"
+elif [ ${#} -ne 0 ]; then
+	usage
+fi
 prepare_out_dir "${out_dir_opt}"
-make_patch "${patch_name}" "${out_dir}"
+if [ "${list}" = "1" ]; then
+	list_patches
+else
+	make_patch "${patch_name}" "${out_dir}"
+fi
