@@ -143,7 +143,7 @@ try_locate_src()
 {
 	_filepath="${1}"
 	_sym="${2}"
-	_filetype=$(file -b "${_filepath}")
+	_filetype=$(file -Lb "${_filepath}")
 	case "${_filetype}" in
 	*ASCII*)
 		locate_src_ascii "${_filepath}"
