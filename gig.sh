@@ -135,7 +135,7 @@ prune__do_prune()
 	    || err "Target branch not found: $target_branch"
 	branches=$(git branch --format='%(refname:short)' --merged \
 	    "$target_branch" \
-	    |grep -v "^$target_br")
+	    |grep -v "^$target_branch")
 	for br in $branches; do
 		prompt "Prune $br? [y/N]"
 		read sure
