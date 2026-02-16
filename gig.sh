@@ -22,7 +22,7 @@ progname=$(basename "$0" .sh)
 #=============== Common general-purpose functions ===============
 prompt()
 {
-	printf "$@" 1>&2
+	printf "$@: " 1>&2
 }
 
 warn()
