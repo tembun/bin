@@ -122,7 +122,7 @@ make_patch()
 		fi
 	fi
 	if [ "${sure}" = "1" ]; then
-		git "${diff_cmd}" "${revision}" --output="${out_short}"
+		git "${diff_cmd}" "${revision}" >"${out_short}"
 		if [ "${?}" -ne "0" ]; then
 			warn "Can't make the patch and write it to ${out_short}"
 		elif [ "${verbose}" = "1" ]; then
@@ -143,7 +143,7 @@ make_patch()
 			fi
 		fi
 		if [ "${sure}" = "1" ]; then
-			git "${diff_cmd}" -U99999 "${revision}" --output="${out_full}"
+			git "${diff_cmd}" -U99999 "${revision}" >"${out_full}"
 			if [ "${?}" -ne "0" ]; then
 				warn "Can't make the full patch and write it to ${out_full}"
 			elif [ "${verbose}" = "1" ]; then
