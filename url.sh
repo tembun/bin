@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #
-# url -- open url in chromium(1).
+# url -- open url in firefox(1).
 #
 
-xargs chromium
+xargs firefox
