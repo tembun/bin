@@ -8,6 +8,7 @@
 # extracted from the debug-file located under /usr/lib/debug.
 # If file is an ASCII text executable, the source file is the file itself.
 # Options:
+#	-d		Just display the source code directory.
 #	-n		Just display the source code filename.
 #	-s symbol	Look for a symbol (defaults to 'main' for binaries).
 #
@@ -19,7 +20,7 @@ DWARFDUMP="llvm-dwarfdump19"
 
 usage()
 {
-	echo "usage: ${progname} [-n] [-s symbol] file ..." 1>&2
+	echo "usage: ${progname} [-d] [-n] [-s symbol] file ..." 1>&2
 	exit 2
 }
 
@@ -186,6 +187,12 @@ print_filename()
 	echo "${1}:${2}"
 }
 
+# print_dir_name filename
+print_dir_name()
+{
+	dirname "${1}"
+}
+
 # serve_results src_file src_line
 serve_results()
 {
@@ -193,6 +200,10 @@ serve_results()
 	_src_line="${2}"
 	if [ "${print_name_only}" = "1" ]; then
 		print_filename "${_src_file}" "${_src_line}"
+		return
+	fi
+	if [ "${print_dir_only}" = "1" ]; then
+		print_dir_name "${_src_file}"
 		return
 	fi
 	if [ -n "${EDITOR}" ]; then
@@ -205,8 +216,9 @@ serve_results()
 
 handle_opts()
 {
-	while getopts "ns:" _o; do
+	while getopts "dns:" _o; do
 		case "${_o}" in
+		d)	print_dir_only=1 ;;
 		n)	print_name_only=1 ;;
 		s)	sym="${OPTARG}" ;;
 		?)	usage ;;
@@ -214,13 +226,20 @@ handle_opts()
 	done
 }
 
+validate_opts()
+{
+	test "${print_dir_only}" = "1" && test "${print_name_only}" = "1" &&
+	    err "-d and -n options are mutually exclusive"
+	if [ ${#} -gt 1 ]; then
+		test "${print_dir_only}" != "1" && print_name_only=1
+		test -n "${sym}" && err "-s is only supported for single file argument"
+	fi
+}
+
 handle_opts ${@}
 shift $((OPTIND - 1))
+validate_opts ${@}
 test ${#} -lt 1 && usage
-if [ ${#} -gt 1 ]; then
-	print_name_only=1
-	test -n "${sym}" && err "-s is only supported for single file argument"
-fi
 ensure_prog "${DWARFDUMP}"
 for file in "${@}"; do
 	locate_src "${file}" "${sym}"
