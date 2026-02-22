@@ -89,6 +89,22 @@ ensure_prog()
 	test -n "${_path}" && test -x "${_path}" || err "You need ${1} to run this"
 }
 
+# append value var
+append()
+{
+	_val="${1}"
+	_var="${2}"
+	_var_val=$(eval echo \"\$${_var}\")
+	eval "${_var}=\$(printf '${_var_val}\n${_val}')"
+}
+
+# trim_empty var
+trim_empty_var()
+{
+	_var="${1}"
+	eval "${_var}=\$(echo \"\$${_var}\" |sort -u |sed '/^$/d')"
+}
+
 # locate_lib lib
 locate_lib()
 {
@@ -396,15 +412,15 @@ handle_opts()
 	while getopts "${_optstr}" _o; do
 		case "${_o}" in
 		d)	print_dir_only=1 ;;
-		f)	files=$(printf "${files}\n${OPTARG}") ;;
-		l)	libs=$(printf "${libs}\n${OPTARG}") ;;
+		f)	append "${OPTARG}" files ;;
+		l)	append "${OPTARG}" libs ;;
 		n)	print_name_only=1 ;;
 		s)	sym="${OPTARG:-"1"}" ;;
 		?)	usage ;;
 		esac
 	done
-	files=$(echo "${files}" |sort -u |sed '/^$/d')
-	libs=$(echo "${libs}" |sort -u |sed '/^$/d')
+	trim_empty_var files
+	trim_empty_var libs
 }
 
 validate_opts()
