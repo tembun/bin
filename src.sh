@@ -1,26 +1,47 @@
 #!/bin/sh
 
 #
-# src -- find source code for FreeBSD base system executable.
+# src -- find source code for FreeBSD components.
 #
 # The corresponding source code file is sent to $EDITOR.
-# If file is a binary executable, the information about the source file will be
-# extracted from the debug-file located under /usr/lib/debug.
-# If file is an ASCII text executable, the source file is the file itself.
+# This script can be invoked as src or ksrc.
+#
+# src locates source code for base system program named 'file'. If 'file' is a
+# binary executable, the information about the source file will be extracted
+# from the debug-file located under /usr/lib/debug. If file is an ASCII text
+# executable, the source file is the file itself.
+#
+# ksrc locates source code for kernel components. By default, 'argument' is
+# treated as a system call name. A particular symbol can be searched instead
+# with -s option. The information is extracted from the kernel debug-file
+# /usr/lib/debug/boot/kernel/kernel.debug.
+#
 # Options:
 #	-d		Just display the source code directory.
 #	-n		Just display the source code filename.
-#	-s symbol	Look for a symbol (defaults to 'main' for binaries).
+#	-s symbol	Look for a symbol.
+#       		If invoked as src, option names a symbol to find in the
+#       		source of a program 'file'.
+#       		If invoked as ksrc, option doesn't take argument and
+#       		means that argument 'argument' should be treated not as
+#       		a syscall name, but as a symbol.
 #
 
 progname=$(basename "${0}" .sh)
 DBG_DIR="/usr/lib/debug"
 DBG_EXT="debug"
 DWARFDUMP="llvm-dwarfdump19"
+KERN_MODE_PREFIX="k"
+KERN_PATH="/boot/kernel/kernel"
+KERN_SYSCALL_PREFIX="sys_"
 
 usage()
 {
-	echo "usage: ${progname} [-d] [-n] [-s symbol] file ..." 1>&2
+	_reg_name=$(echo "${progname}" |sed "s/^${KERN_MODE_PREFIX}//")
+	cat 1>&2 <<__EOF__
+usage: ${_reg_name} [-d] [-n] [-s symbol] file ...
+       ${KERN_MODE_PREFIX}${_reg_name} [-d] [-n] [-s] argument ...
+__EOF__
 	exit 2
 }
 
@@ -39,6 +60,11 @@ ensure_prog()
 {
 	_path=$(which "${1}" 2>/dev/null)
 	test -n "${_path}" && test -x "${_path}" || err "You need ${1} to run this"
+}
+
+check_kern_mode()
+{
+	test $(echo "${progname}" |head -c 1) = "${KERN_MODE_PREFIX}"
 }
 
 # locate_src_ascii file
@@ -83,6 +109,7 @@ locate_src_file()
 {
 	__src=$(echo "${1}" \
 	    |grep "DW_AT_decl_file" \
+	    |tail -n 1 \
 	    |sed -e 's/.*("//' -e 's/")//')
 }
 
@@ -162,15 +189,26 @@ try_locate_src()
 	esac
 }
 
-# try_locate_src file symbol?
+# locate_src arg1 arg2?
+#	In kernel mode arg1 holds a syscall name or a symbol,
+#	in regular mode arg1 is a program name, and arg2 is an optional symbol.
 locate_src()
 {
-	_file="${1}"
-	_sym="${2}"
-	_filepath=$(which "${_file}" 2>/dev/null)
-	if [ ${?} -ne 0 ]; then
-		warn "Can't locate path for ${_file}"
-		return 1
+	_arg1="${1}"
+	_arg2="${2}"
+	if check_kern_mode; then
+		_filepath="${KERN_PATH}"
+		test -f "${_filepath}" || err "Debug file for kernel not found: ${_filepath}"
+		_sym="${_arg1}"
+		test -z "${sym}" && _sym="${KERN_SYSCALL_PREFIX}${_sym}"
+	else
+		_file="${_arg1}"
+		_filepath=$(which "${_file}" 2>/dev/null)
+		if [ ${?} -ne 0 ]; then
+			warn "Can't locate path for ${_arg1}"
+			return 1
+		fi
+		_sym="${_arg2}"
 	fi
 	_candidates=$(find $(dirname "${_filepath}") -samefile "${_filepath}")
 	for _candidate in ${_candidates}; do
@@ -216,11 +254,16 @@ serve_results()
 
 handle_opts()
 {
-	while getopts "dns:" _o; do
+	if check_kern_mode; then
+		_optstr="dns"
+	else
+		_optstr="dns:"
+	fi
+	while getopts "${_optstr}" _o; do
 		case "${_o}" in
 		d)	print_dir_only=1 ;;
 		n)	print_name_only=1 ;;
-		s)	sym="${OPTARG}" ;;
+		s)	sym="${OPTARG:-"1"}" ;;
 		?)	usage ;;
 		esac
 	done
@@ -232,7 +275,8 @@ validate_opts()
 	    err "-d and -n options are mutually exclusive"
 	if [ ${#} -gt 1 ]; then
 		test "${print_dir_only}" != "1" && print_name_only=1
-		test -n "${sym}" && err "-s is only supported for single file argument"
+		! check_kern_mode && test -n "${sym}" &&
+		    err "-s is only supported for single argument"
 	fi
 }
 
