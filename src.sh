@@ -114,7 +114,7 @@ $(warn "${1}" 2>&1)"
 flush_no_debug_warns()
 {
 	_warns=$(echo "${__no_debug_warns}" |sort -u |sed '/^$/d')
-	test -n "${_warns}" && warn "${_warns}"
+	test -n "${_warns}" && echo "${_warns}" 1>&2
 }
 
 # locate_dbg_bin files
