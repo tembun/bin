@@ -43,6 +43,7 @@ LIB_DEFAULT="c"
 KERN_MODE_PREFIX="k"
 KERN_PATH="/boot/kernel/kernel"
 KERN_SYSCALL_PREFIX="sys_"
+REG_SYM_DEFAULT="main"
 
 usage()
 {
@@ -250,7 +251,7 @@ try_locate_src()
 		return 0
 		;;
 	ELF*)
-		test -z "${_sym}" && _sym="main"
+		test -z "${_sym}" && _sym="${REG_SYM_DEFAULT}"
 		locate_src_bin "${_filepath}" "${_sym}"
 		return ${?}
 		;;
