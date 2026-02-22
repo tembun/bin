@@ -4,7 +4,7 @@
 # src -- find source code for FreeBSD components.
 #
 # The corresponding source code file is sent to $EDITOR.
-# This script can be invoked as src, ksrc or lsrc.
+# This script can be invoked as src, ksrc, lsrc or dsrc.
 #
 # src locates source code for base system program named 'file'.  If 'file' is a
 # binary executable, the information about the source file will be extracted
@@ -19,13 +19,18 @@
 # lsrc locates source code for C library functions.  By default it will search
 # for libc functions (libc.so), but other libraries can be specified with -l.
 #
+# dsrc locates source code for the specified symbols in the specified
+# debug-files.
+#
 # Options:
 #	-d		Just display the source code directory.
+#	-f file		(Mandatory if invoked as dsrc): add debug-file 'file' to
+#	       		the list of files to search in.
+#	        	Unused for other invocation forms.
 #	-l lib		(If invoked as lsrc only): add library 'lib' to the
 #	      		list of libraries to search in.
 #	-n		Just display the source code filename.
-#	-s symbol	Look for a symbol.
-#       		If invoked as src, option names a symbol to find in the
+#	-s symbol	Look for a	        	 		If invoked as src, option names a symbol to find in the
 #       		source of a program 'file'.
 #       		If invoked as ksrc, option doesn't take argument and
 #       		means that argument 'argument' should be treated not as
@@ -37,6 +42,7 @@ progname=$(basename "${0}" .sh)
 DBG_DIR="/usr/lib/debug"
 DBG_EXT="debug"
 DWARFDUMP="llvm-dwarfdump19"
+DEBUG_MODE_PREFIX="d"
 LIB_MODE_PREFIX="l"
 LIB_DIR="/lib"
 LIB_DEFAULT="c"
@@ -48,11 +54,12 @@ REG_SYM_DEFAULT="main"
 usage()
 {
 	_reg_name=$(echo "${progname}" |sed -e "s/^${KERN_MODE_PREFIX}//" \
-	    -e "s/^${LIB_MODE_PREFIX}//")
+	    -e "s/^${LIB_MODE_PREFIX}//" -e "s/^${DEBUG_MODE_PREFIX}//")
 	cat 1>&2 <<__EOF__
 usage: ${_reg_name} [-d] [-n] [-s symbol] file ...
        ${KERN_MODE_PREFIX}${_reg_name} [-d] [-n] [-s] argument ...
        ${LIB_MODE_PREFIX}${_reg_name} [-d] [-n] [-l lib ...] function ...
+       ${DEBUG_MODE_PREFIX}${_reg_name} [-d] [-n] -f file ... symbol ...
 __EOF__
 	exit 2
 }
@@ -86,6 +93,11 @@ ensure_prog()
 locate_lib()
 {
 	find "${LIB_DIR}" -type f -name "lib${1}.so*" 2>/dev/null
+}
+
+check_debug_mode()
+{
+	test $(echo "${progname}" |head -c 1) = "${DEBUG_MODE_PREFIX}"
 }
 
 check_lib_mode()
@@ -208,13 +220,20 @@ locate_src_file_by_call_site()
 	return 1
 }
 
-# locate_src_bin files symbol
+# locate_src_bin files symbol need_locate_dbg=1
+#	If we need to treat files as debug files, then need_locate_dbg should be
+#	set to 0.
 locate_src_bin()
 {
 	_files="${1}"
 	_sym="${2}"
-	locate_dbg_bin "${_files}"
-	test ${?} -ne 0 && return 1
+	_need_locate_dbg="${3:-"1"}"
+	if [ "${_need_locate_dbg}" = "1" ]; then
+		locate_dbg_bin "${_files}"
+		test ${?} -ne 0 && return 1
+	else
+		__src_dbg="${_files}"
+	fi
 	get_dbg_info "${__src_dbg}" "${_sym}"
 	_src_dbg_comma=$(printf "${__src_dbg}" |tr '\n' ',' |sed 's/,/& /g')
 	if [ -z "${__dbg_info}" ]; then
@@ -266,7 +285,8 @@ try_locate_src()
 #	In regular mode arg1 is a program name, and arg2 is an optional symbol,
 #	in kernel mode arg1 holds a syscall name or a symbol,
 #	in lib mode arg1 holds a (possibly empty) list of libraries and arg2 is
-#	for function name.
+#	for function name,
+#	in debug mode arg1 holds a list of debug-filepaths, arg2 holds a symbol.
 locate_src()
 {
 	_arg1="${1}"
@@ -295,6 +315,21 @@ locate_src()
 		fi
 		_lib_paths=$(echo "${_lib_paths}" |sort -u |sed '/^$/d')
 		locate_src_bin "${_lib_paths}" "${_sym}"
+		test ${?} -eq 0 && return 0
+	elif check_debug_mode; then
+		_filepaths="${_arg1}"
+		_sym="${_arg2}"
+		for _filepath in ${_filepaths}; do
+			if [ ! -f "${_filepath}" ]; then
+				warn "Debug file not found: ${_filepath}"
+				_err=1
+			fi
+		done
+		if [ "${_err}" = "1" ]; then
+			__fatal_err=1
+			return 1
+		fi
+		locate_src_bin "${_filepaths}" "${_sym}" 0
 		test ${?} -eq 0 && return 0
 	else
 		_file="${_arg1}"
@@ -353,18 +388,22 @@ handle_opts()
 		_optstr="dns"
 	elif check_lib_mode; then
 		_optstr="dl:n"
+	elif check_debug_mode; then
+		_optstr="df:n"
 	else
 		_optstr="dns:"
 	fi
 	while getopts "${_optstr}" _o; do
 		case "${_o}" in
 		d)	print_dir_only=1 ;;
+		f)	files=$(printf "${files}\n${OPTARG}") ;;
 		l)	libs=$(printf "${libs}\n${OPTARG}") ;;
 		n)	print_name_only=1 ;;
 		s)	sym="${OPTARG:-"1"}" ;;
 		?)	usage ;;
 		esac
 	done
+	files=$(echo "${files}" |sort -u |sed '/^$/d')
 	libs=$(echo "${libs}" |sort -u |sed '/^$/d')
 }
 
@@ -377,6 +416,7 @@ validate_opts()
 		! check_lib_mode && ! check_kern_mode && test -n "${sym}" &&
 		    err "-s is only supported for single argument"
 	fi
+	check_debug_mode && test -z "${files}" && usage
 }
 
 handle_opts ${@}
@@ -387,6 +427,8 @@ ensure_prog "${DWARFDUMP}"
 for arg in "${@}"; do
 	if check_lib_mode; then
 		locate_src "${libs}" "${arg}"
+	elif check_debug_mode; then
+		locate_src "${files}" "${arg}"
 	else
 		locate_src "${arg}" "${sym}"
 	fi

@@ -31,7 +31,7 @@ INSTALL_LINK_OPT= -l h
 INSTALL_MODE_OPT= -m
 
 LINKS_ren= normalize
-LINKS_src= ksrc lsrc
+LINKS_src= dsrc ksrc lsrc
 
 all: ${SRCS:C/\.[^.]*$//}
 
