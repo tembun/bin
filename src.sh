@@ -4,22 +4,25 @@
 # src -- find source code for FreeBSD components.
 #
 # The corresponding source code file is sent to $EDITOR.
-# This script can be invoked as src, ksrc or csrc.
+# This script can be invoked as src, ksrc or lsrc.
 #
-# src locates source code for base system program named 'file'. If 'file' is a
+# src locates source code for base system program named 'file'.  If 'file' is a
 # binary executable, the information about the source file will be extracted
-# from the debug-file located under /usr/lib/debug. If file is an ASCII text
+# from the debug-file located under /usr/lib/debug.  If file is an ASCII text
 # executable, the source file is the file itself.
 #
-# ksrc locates source code for kernel components. By default, 'argument' is
-# treated as a system call name. A particular symbol can be searched instead
-# with -s option. The information is extracted from the kernel debug-file
+# ksrc locates source code for kernel components.  By default 'argument' is
+# treated as a system call name.  A particular symbol can be searched instead
+# with -s option.  The information is extracted from the kernel debug-file
 # /usr/lib/debug/boot/kernel/kernel.debug.
 #
-# csrc locates source code for the C library functions (libc.so).
+# lsrc locates source code for C library functions.  By default it will search
+# for libc functions (libc.so), but other libraries can be specified with -l.
 #
 # Options:
 #	-d		Just display the source code directory.
+#	-l lib		(If invoked as lsrc only): add library 'lib' to the
+#	      		list of libraries to search in.
 #	-n		Just display the source code filename.
 #	-s symbol	Look for a symbol.
 #       		If invoked as src, option names a symbol to find in the
@@ -27,26 +30,28 @@
 #       		If invoked as ksrc, option doesn't take argument and
 #       		means that argument 'argument' should be treated not as
 #       		a syscall name, but as a symbol.
-#       		This options is not supported if invoked as csrc.
+#       		This options is not supported if invoked as lsrc.
 #
 
 progname=$(basename "${0}" .sh)
 DBG_DIR="/usr/lib/debug"
 DBG_EXT="debug"
 DWARFDUMP="llvm-dwarfdump19"
-LIBC_MODE_PREFIX="c"
-LIBC_PATH="/lib/libc.so.7"
+LIB_MODE_PREFIX="l"
+LIB_DIR="/lib"
+LIB_DEFAULT="c"
 KERN_MODE_PREFIX="k"
 KERN_PATH="/boot/kernel/kernel"
 KERN_SYSCALL_PREFIX="sys_"
 
 usage()
 {
-	_reg_name=$(echo "${progname}" |sed "s/^${KERN_MODE_PREFIX}//")
+	_reg_name=$(echo "${progname}" |sed -e "s/^${KERN_MODE_PREFIX}//" \
+	    -e "s/^${LIB_MODE_PREFIX}//")
 	cat 1>&2 <<__EOF__
 usage: ${_reg_name} [-d] [-n] [-s symbol] file ...
        ${KERN_MODE_PREFIX}${_reg_name} [-d] [-n] [-s] argument ...
-       ${LIBC_MODE_PREFIX}${_reg_name} [-d] [-n] function ...
+       ${LIB_MODE_PREFIX}${_reg_name} [-d] [-n] [-l lib ...] function ...
 __EOF__
 	exit 2
 }
@@ -76,9 +81,15 @@ ensure_prog()
 	test -n "${_path}" && test -x "${_path}" || err "You need ${1} to run this"
 }
 
-check_libc_mode()
+# locate_lib lib
+locate_lib()
 {
-	test $(echo "${progname}" |head -c 1) = "${LIBC_MODE_PREFIX}"
+	find "${LIB_DIR}" -type f -name "lib${1}.so*" 2>/dev/null
+}
+
+check_lib_mode()
+{
+	test $(echo "${progname}" |head -c 1) = "${LIB_MODE_PREFIX}"
 }
 
 check_kern_mode()
@@ -101,26 +112,29 @@ $(warn "${1}" 2>&1)"
 
 flush_no_debug_warns()
 {
-	_warns=$(echo "${__no_debug_warns}" |sed '/^$/d')
+	_warns=$(echo "${__no_debug_warns}" |sort -u |sed '/^$/d')
 	test -n "${_warns}" && warn "${_warns}"
 }
 
-# locate_dbg_bin file
+# locate_dbg_bin files
 locate_dbg_bin()
 {
-	_file="${1}"
-	__src_dbg="${DBG_DIR}${_file}.${DBG_EXT}"
-	if [ ! -f "${__src_dbg}" ]; then
-		accumulate_no_debug_warns "Debug file for ${_file} not found: ${__src_dbg}"
-		return 1
-	fi
+	for _file in ${@}; do
+		_src_dbg="${DBG_DIR}${_file}.${DBG_EXT}"
+		if [ ! -f "${_src_dbg}" ]; then
+			accumulate_no_debug_warns "Debug file for ${_file} not found: ${_src_dbg}"
+			return 1
+		fi
+		__src_dbg=$(printf "${__src_dbg}\n${_src_dbg}")
+	done
+	__src_dbg=$(echo "${__src_dbg}" |sed '/^$/d')
 	return 0
 }
 
-# get_dbg_info dbg_file symbol
+# get_dbg_info dbg_files symbol
 get_dbg_info()
 {
-	__dbg_info=$(${DWARFDUMP} -n "${2}" "${1}" 2>/dev/null)
+	__dbg_info=$(${DWARFDUMP} -n "${2}" ${1} 2>/dev/null)
 }
 
 # locate_src_file dbg_info
@@ -172,20 +186,20 @@ locate_src_file()
 	    |sed -e 's/.*(//' -e 's/)//')
 }
 
-# locate_src_by_call_site dbg_file symbol dbg_info
+# locate_src_by_call_site dbg_files symbol dbg_info
 locate_src_file_by_call_site()
 {
-	_dbg_file="${1}"
+	_dbg_files="${1}"
 	_sym="${2}"
 	_dbg_info="${3}"
 	if echo "${_dbg_info}" |grep -q "DW_AT_GNU_all_call_sites"; then
-		__dbg_info=$(${DWARFDUMP} -cn "${_sym}" "${_dbg_file}" 2>/dev/null \
+		__dbg_info=$(${DWARFDUMP} -cn "${_sym}" "${_dbg_files}" 2>/dev/null \
 		    |awk 'BEGIN {p=0}; {if($2=="DW_TAG_GNU_call_site") {p=1}; if (p==1) {print $0}}')
 		test -z "${__dbg_info}" && return 1
 		_call_site_sym=$(echo "${__dbg_info}" \
 		    |grep "DW_AT_abstract_origin" \
 		    |sed -e 's/.* "//' -e 's/")//')
-		get_dbg_info "${_dbg_file}" "${_call_site_sym}"
+		get_dbg_info "${_dbg_files}" "${_call_site_sym}"
 		test -z "${__dbg_info}" && return 1
 		locate_src_file "${__dbg_info}"
 		return 0
@@ -193,37 +207,38 @@ locate_src_file_by_call_site()
 	return 1
 }
 
-# locate_src_bin file symbol
+# locate_src_bin files symbol
 locate_src_bin()
 {
-	_file="${1}"
+	_files="${1}"
 	_sym="${2}"
-	locate_dbg_bin "${_file}"
+	locate_dbg_bin "${_files}"
 	test ${?} -ne 0 && return 1
 	get_dbg_info "${__src_dbg}" "${_sym}"
+	_src_dbg_comma=$(printf "${__src_dbg}" |tr '\n' ',' |sed 's/,/& /g')
 	if [ -z "${__dbg_info}" ]; then
-		warn "No debug information for symbol ${_sym} in ${__src_dbg}"
+		warn "No debug information for symbol ${_sym} in ${_src_dbg_comma}"
 		return 1
 	fi
 	locate_src_file "${__dbg_info}"
 	if [ -z "${__src}" ]; then
 		locate_src_file_by_call_site "${__src_dbg}" "${_sym}" "${__dbg_info}"
 		if [ ${?} -ne 0 ] || [ -z "${__src}" ]; then
-			warn "No source file for symbol ${_sym} in ${__src_dbg}"
+			warn "No source file for symbol ${_sym} in ${_src_dbg_comma}"
 			return 1
 		fi
 	fi
 	if [ ! -f "${__src}" ]; then
 		warn "Source file for ${sym} was found, but it doesn't exist: ${__src}"
 	fi
-	# __src_line has been set earlier in locate_src_file
+	# __src_line has been set earlier in locate_src_file().
 	if [ -z "${__src_line}" ]; then
-		warn "No source file line found for symbol ${_sym} in ${__src_dbg}"
+		warn "No source file line found for symbol ${_sym} in ${_src_dbg_comma}"
 		return 1
 	fi
 }
 
-# try_locate_src file symbol?
+# try_locate_src file symbols
 try_locate_src()
 {
 	_filepath="${1}"
@@ -246,23 +261,40 @@ try_locate_src()
 	esac
 }
 
-# locate_src arg1 arg2?
+# locate_src arg1 arg2
 #	In regular mode arg1 is a program name, and arg2 is an optional symbol,
 #	in kernel mode arg1 holds a syscall name or a symbol,
-#	in libc mode arg1 holds a C library function name or a symbol.
+#	in lib mode arg1 holds a (possibly empty) list of libraries and arg2 is
+#	for function name.
 locate_src()
 {
 	_arg1="${1}"
 	_arg2="${2}"
 	if check_kern_mode; then
 		_filepath="${KERN_PATH}"
-		test -f "${_filepath}" || err "Debug file for kernel not found: ${_filepath}"
+		test -f "${_filepath}" || err "Kernel file not found: ${_filepath}"
 		_sym="${_arg1}"
 		test -z "${sym}" && _sym="${KERN_SYSCALL_PREFIX}${_sym}"
-	elif check_libc_mode; then
-		_filepath="${LIBC_PATH}"
-		test -f "${_filepath}" || err "Debug file for libc not found: ${_filepath}"
-		_sym="${_arg1}"
+		locate_src_bin "${_filepath}" "${_sym}"
+		test ${?} -eq 0 && return 0
+	elif check_lib_mode; then
+		_libs="${_arg1:-"${LIB_DEFAULT}"}"
+		_sym="${_arg2}"
+		for _lib in ${_libs}; do
+			_lib_path=$(locate_lib "${_lib}")
+			if [ -z "${_lib_path}" ]; then
+			    warn "Can't locate shared object for library: ${_lib}"
+			    _err=1
+			fi
+			_lib_paths=$(printf "${_lib_paths}\n${_lib_path}")
+		done
+		if [ "${_err}" = "1" ]; then
+			__fatal_err=1
+			return 1
+		fi
+		_lib_paths=$(echo "${_lib_paths}" |sort -u |sed '/^$/d')
+		locate_src_bin "${_lib_paths}" "${_sym}"
+		test ${?} -eq 0 && return 0
 	else
 		_file="${_arg1}"
 		_filepath=$(which "${_file}" 2>/dev/null)
@@ -271,12 +303,12 @@ locate_src()
 			return 1
 		fi
 		_sym="${_arg2}"
+		_candidates=$(find $(dirname "${_filepath}") -samefile "${_filepath}")
+		for _candidate in ${_candidates}; do
+			try_locate_src "${_candidate}" "${_sym}"
+			test ${?} -eq 0 && return 0
+		done
 	fi
-	_candidates=$(find $(dirname "${_filepath}") -samefile "${_filepath}")
-	for _candidate in ${_candidates}; do
-		try_locate_src "${_candidate}" "${_sym}"
-		test ${?} -eq 0 && return 0
-	done
 	flush_no_debug_warns
 	return 1
 }
@@ -318,19 +350,21 @@ handle_opts()
 {
 	if check_kern_mode; then
 		_optstr="dns"
-	elif check_libc_mode; then
-		_optstr="dn"
+	elif check_lib_mode; then
+		_optstr="dl:n"
 	else
 		_optstr="dns:"
 	fi
 	while getopts "${_optstr}" _o; do
 		case "${_o}" in
 		d)	print_dir_only=1 ;;
+		l)	libs=$(printf "${libs}\n${OPTARG}") ;;
 		n)	print_name_only=1 ;;
 		s)	sym="${OPTARG:-"1"}" ;;
 		?)	usage ;;
 		esac
 	done
+	libs=$(echo "${libs}" |sort -u |sed '/^$/d')
 }
 
 validate_opts()
@@ -339,7 +373,7 @@ validate_opts()
 	    err "-d and -n options are mutually exclusive"
 	if [ ${#} -gt 1 ]; then
 		test "${print_dir_only}" != "1" && print_name_only=1
-		!check_libc_mode && ! check_kern_mode && test -n "${sym}" &&
+		! check_lib_mode && ! check_kern_mode && test -n "${sym}" &&
 		    err "-s is only supported for single argument"
 	fi
 }
@@ -349,7 +383,12 @@ shift $((OPTIND - 1))
 validate_opts ${@}
 test ${#} -lt 1 && usage
 ensure_prog "${DWARFDUMP}"
-for file in "${@}"; do
-	locate_src "${file}" "${sym}"
+for arg in "${@}"; do
+	if check_lib_mode; then
+		locate_src "${libs}" "${arg}"
+	else
+		locate_src "${arg}" "${sym}"
+	fi
 	test ${?} -eq 0 && serve_results "${__src}" "${__src_line}"
+	test "${__fatal_err}" = "1" && return 1
 done
