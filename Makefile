@@ -47,8 +47,10 @@ ${PREFIX}/${BINDIR}/${src_base}: ${src_file}
 	@mkdir -p $$(dirname ${.TARGET})
 	${INSTALL} ${INSTALL_MODE_OPT} ${BIN_MODE} ${.ALLSRC} ${.TARGET}
 .if defined(LINKS_${src_base})
+.for link in ${LINKS_${src_base}}
 	${INSTALL} ${INSTALL_LINK_OPT} ${INSTALL_MODE_OPT} ${BIN_MODE}\
-	    ${.TARGET} ${PREFIX}/${BINDIR}/${LINKS_${.TARGET:T}}
+	    ${.TARGET} ${PREFIX}/${BINDIR}/${link}
+.endfor
 .endif
 
 src_man=${src}/${src_base}.1
