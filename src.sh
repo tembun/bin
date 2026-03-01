@@ -44,7 +44,7 @@ DBG_EXT="debug"
 DWARFDUMP="llvm-dwarfdump19"
 DEBUG_MODE_PREFIX="d"
 LIB_MODE_PREFIX="l"
-LIB_DIR="/lib"
+LIB_DIRS="/lib /usr/lib"
 LIB_DEFAULT="c"
 KERN_MODE_PREFIX="k"
 KERN_PATH="/boot/kernel/kernel"
@@ -108,7 +108,8 @@ trim_empty_var()
 # locate_lib lib
 locate_lib()
 {
-	find "${LIB_DIR}" -type f -name "lib${1}.so*" 2>/dev/null
+	find ${LIB_DIRS} -type f -name "lib${1}.so.*" \
+	    -not -path "${DBG_DIR}*" 2>/dev/null
 }
 
 check_debug_mode()
