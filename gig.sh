@@ -7,6 +7,7 @@
 #     gig <command> [arguments]
 #
 # List of commands:
+#     fetch -	force-fetch and update the branch.
 #     prune -	prune merged branches interactively.
 #     push -	push current branch changes to all remote refs.
 #           	If a remote has a push-url set to `NOPUSH', no push is done.
@@ -50,7 +51,7 @@ usage_template()
 
 usage()
 {
-	local usage_str_vars="PUSH__USAGE_STR PRUNE__USAGE_STR
+	local usage_str_vars="FETCH__USAGE_STR PRUNE__USAGE_STR PUSH__USAGE_STR
 IGNORE__USAGE_STR"
 	local usage_str
 	local idx=0
@@ -83,6 +84,55 @@ git_check_branch()
 git_get_repo_path()
 {
 	git rev-parse --show-toplevel
+}
+
+#=============== Fetch ===============
+FETCH__CMD="fetch"
+FETCH__USAGE_STR=$(cat <<__EOF__
+${FETCH__CMD} remote branch
+__EOF__
+)
+
+fetch__usage()
+{
+	usage_template "${FETCH__USAGE_STR}"
+}
+
+fetch__check_remote_url()
+{
+	test -n $(git remote get-url "${1}")
+}
+
+# Force-fetch and update branch.
+fetch__do_fetch()
+{
+	local remote="${1}"
+	local branch="${2}"
+	local tmp_branch="tmp__${branch}"
+	trap "git branch -D ${tmp_branch}" INT TERM
+	if git_check_branch "${branch}"; then
+		(git checkout -b "${tmp_branch}" "${branch}" &&
+		    git branch -D "${branch}") >/dev/null 2>&1
+	fi
+	(git fetch "${remote}" "${branch}" &&
+	    git checkout -b "${branch}" "${remote}/${branch}" &&
+	    git branch -D "${tmp_branch}") >/dev/null 2>&1 ||
+	    err "git error occurred"
+	trap "" INT TERM
+}
+
+fetch__handle_args()
+{
+	local remote="${1}"
+	local branch="${2}"
+	test -n "${remote}" && test -n "${branch}" || fetch__usage
+	fetch__check_remote_url "${remote}" || err "Remote not found: ${remote}"
+	fetch__do_fetch "${remote}" "${branch}"
+}
+
+fetch__cmd()
+{
+	fetch__handle_args "${@}"
 }
 
 #=============== Prune ===============
@@ -272,8 +322,9 @@ ignore__cmd()
 cmd="$1"
 shift
 case $cmd in
-$PUSH_CMD)	push__cmd "$@" ;;
+${FETCH__CMD})	fetch__cmd "${@}" ;;
 $PRUNE_CMD)	prune__cmd "$@" ;;
+$PUSH_CMD)	push__cmd "$@" ;;
 $IGNORE_CMD)	ignore__cmd "$@" ;;
 *)		usage ;;
 esac
