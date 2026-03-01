@@ -199,7 +199,6 @@ locate_src_file()
 		# That's the match that we need.  Quit the loop.
 		echo "${_src_c_info}" |grep -q "DW_TAG_subprogram" && break
 		_offset=$((_offset + _line_num + 4))
-		echo "${_offset}"
 	done
 	# If we found a C source file, pick it, otherwise get the latest source
 	# file matched.
