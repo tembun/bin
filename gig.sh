@@ -88,7 +88,7 @@ git_get_repo_path()
 #=============== Prune ===============
 PRUNE_CMD="prune"
 PRUNE__USAGE_STR=$(cat <<__EOF__
-$PRUNE_CMD [target branch]
+$PRUNE_CMD [target_branch]
 __EOF__
 )
 
@@ -136,7 +136,7 @@ prune__cmd()
 #=============== Push ===============
 PUSH_CMD="push"
 PUSH__USAGE_STR=$(cat <<__EOF__
-$PUSH_CMD [git-push(1) options]
+$PUSH_CMD [git-push(1)_options]
 __EOF__
 )
 # Don't push if push url for a git-remote(1) is set to this value.
