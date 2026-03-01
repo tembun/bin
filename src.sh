@@ -30,7 +30,8 @@
 #	-l lib		(If invoked as lsrc only): add library 'lib' to the
 #	      		list of libraries to search in.
 #	-n		Just display the source code filename.
-#	-s symbol	Look for a	        	 		If invoked as src, option names a symbol to find in the
+#	-s symbol	Look for a symbol.
+#	         	If invoked as src, option names a symbol to find in the
 #       		source of a program 'file'.
 #       		If invoked as ksrc, option doesn't take argument and
 #       		means that argument 'argument' should be treated not as
