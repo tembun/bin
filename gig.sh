@@ -7,9 +7,9 @@
 #     gig <command> [arguments]
 #
 # List of commands:
+#     prune -	prune merged branches interactively.
 #     push -	push current branch changes to all remote refs.
 #           	If a remote has a push-url set to `NOPUSH', no push is done.
-#     prune -	prune merged branches interactively.
 #     ignore -	manage gitignore(5).
 #               Options:
 #                   -a	Add given patterns to the file.
@@ -85,39 +85,6 @@ git_get_repo_path()
 	git rev-parse --show-toplevel
 }
 
-#=============== Push ===============
-PUSH_CMD="push"
-PUSH__USAGE_STR=$(cat <<__EOF__
-$PUSH_CMD [git-push(1) options]
-__EOF__
-)
-# Don't push if push url for a git-remote(1) is set to this value.
-PUSH_NOPUSH_URL="NOPUSH"
-
-# git_check_push_url remote
-push__check_push_url()
-{
-	[ $(git remote get-url --push "$1") != "${PUSH_NOPUSH_URL}" ]
-}
-
-push__do_push()
-{
-	for remote in $(git remote); do
-		if ! push__check_push_url "${remote}"; then
-			warn "Push is disabled for ${remote}"
-			continue
-		fi
-		echo "Push ${remote}"
-		git push $@ $remote HEAD &
-	done
-	wait
-}
-
-push__cmd()
-{
-	push__do_push $@
-}
-
 #=============== Prune ===============
 PRUNE_CMD="prune"
 PRUNE__USAGE_STR=$(cat <<__EOF__
@@ -164,6 +131,39 @@ prune__handle_args()
 prune__cmd()
 {
 	prune__handle_args $@
+}
+
+#=============== Push ===============
+PUSH_CMD="push"
+PUSH__USAGE_STR=$(cat <<__EOF__
+$PUSH_CMD [git-push(1) options]
+__EOF__
+)
+# Don't push if push url for a git-remote(1) is set to this value.
+PUSH_NOPUSH_URL="NOPUSH"
+
+# git_check_push_url remote
+push__check_push_url()
+{
+	[ $(git remote get-url --push "$1") != "${PUSH_NOPUSH_URL}" ]
+}
+
+push__do_push()
+{
+	for remote in $(git remote); do
+		if ! push__check_push_url "${remote}"; then
+			warn "Push is disabled for ${remote}"
+			continue
+		fi
+		echo "Push ${remote}"
+		git push $@ $remote HEAD &
+	done
+	wait
+}
+
+push__cmd()
+{
+	push__do_push $@
 }
 
 #=============== Ignore ===============
