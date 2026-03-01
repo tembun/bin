@@ -111,13 +111,16 @@ fetch__do_fetch()
 	local tmp_branch="tmp__${branch}"
 	trap "git branch -D ${tmp_branch}" INT TERM
 	if git_check_branch "${branch}"; then
-		(git checkout -b "${tmp_branch}" "${branch}" &&
-		    git branch -D "${branch}") >/dev/null 2>&1
+		git checkout -b "${tmp_branch}" "${branch}" >/dev/null 2>&1 ||
+		    err "Error during git-checkout"
+		git branch -D "${branch}" >/dev/null 2>&1 ||
+		    err "Error during git-branch -D"
 	fi
-	(git fetch "${remote}" "${branch}" &&
-	    git checkout -b "${branch}" "${remote}/${branch}" &&
-	    git branch -D "${tmp_branch}") >/dev/null 2>&1 ||
-	    err "git error occurred"
+	git fetch "${remote}" "${branch}" || err "Error during git-fetch"
+	git checkout -b "${branch}" "${remote}/${branch}" >/dev/null 2>&1 ||
+	    err "Error during git-checkout"
+	git branch -D "${tmp_branch}" >/dev/null 2>&1 ||
+	    err "Error during git-branch -D"
 	trap "" INT TERM
 }
 
