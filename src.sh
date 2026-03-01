@@ -255,6 +255,8 @@ locate_src_bin()
 		warn "No debug information for symbol ${_sym} in ${_src_dbg_comma}"
 		return 1
 	fi
+	unset __src
+	unset __src_line
 	locate_src_file "${__dbg_info}"
 	if [ -z "${__src}" ]; then
 		locate_src_file_by_call_site "${__src_dbg}" "${_sym}" "${__dbg_info}"
