@@ -43,20 +43,24 @@ src_file:sh= find ${src} -type f -name "*.sh" |head -n 1
 .endif
 src_base=${src:C/\.[^.]*$//}
 
-${PREFIX}/${BINDIR}/${src_base}: ${src_file}
-	@mkdir -p $$(dirname ${.TARGET})
+main_target=${PREFIX}/${BINDIR}/${src_base}
+${main_target}: ${src_file}
+	@mkdir -p ${.TARGET:H}
 	${INSTALL} ${INSTALL_MODE_OPT} ${BIN_MODE} ${.ALLSRC} ${.TARGET}
-.if defined(LINKS_${src_base})
-.for link in ${LINKS_${src_base}}
+
+link_targets=${LINKS_${src_base}:C/^/${PREFIX}\/${BINDIR}\//}
+.for link_target in ${link_targets}
+${link_target}: ${main_target}
+	@mkdir -p ${.TARGET:H}
 	${INSTALL} ${INSTALL_LINK_OPT} ${INSTALL_MODE_OPT} ${BIN_MODE}\
-	    ${.TARGET} ${PREFIX}/${BINDIR}/${link}
+	    ${.ALLSRC} ${.TARGET}
 .endfor
-.endif
 
 src_man=${src}/${src_base}.1
-.OPTIONAL: ${PREFIX}/${MANDIR}/${src_base}.1.gz
+man_gz_target=${PREFIX}/${MANDIR}/${src_base}.1.gz
+.OPTIONAL: ${man_gz_target}
 .if ${is_dir} == "1" && exists(${src_man})
-${PREFIX}/${MANDIR}/${src_base}.1.gz: ${src_man}
+${man_gz_target}: ${src_man}
 	@mkdir -p $$(dirname ${.TARGET})
 	${MANCOMPRESS} ${.ALLSRC} >${.TARGET}
 	@chmod ${MAN_MODE} ${.TARGET}
@@ -74,12 +78,8 @@ ${PREFIX}/${SHAREDIR}/${SHARE_SUBDIR}/${share_src_base}: ${share_src}
 	${INSTALL} ${INSTALL_MODE_OPT} ${SHARE_MODE} ${.ALLSRC} ${.TARGET}
 .endfor
 .endif
-share_targets=
-.if ${SHARE_SRCS}
 share_targets=${SHARE_SRCS:T:C/^/${PREFIX}\/${SHAREDIR}\/${SHARE_SUBDIR}\//}
-.endif
 
 .PHONY: ${src_base}
-${src_base}: ${PREFIX}/${BINDIR}/${src_base} ${PREFIX}/${MANDIR}/${src_base}.1.gz\
-    ${share_targets}
+${src_base}: ${main_target} ${link_targets} ${man_gz_target} ${share_targets}
 .endfor
