@@ -119,8 +119,7 @@ fetch__do_fetch()
 	git fetch "${remote}" "${branch}" || err "Error during git-fetch"
 	git checkout -b "${branch}" "${remote}/${branch}" >/dev/null 2>&1 ||
 	    err "Error during git-checkout"
-	git branch -D "${tmp_branch}" >/dev/null 2>&1 ||
-	    err "Error during git-branch -D"
+	git branch -D "${tmp_branch}" >/dev/null 2>&1
 	trap "" INT TERM
 }
 
