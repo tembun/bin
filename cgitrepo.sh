@@ -105,20 +105,8 @@ __EOF__
 
 make_cgitrepos()
 {
-	local repo_name repo_desc
-	while true; do
-		repo_name=$(prompt "Repo name")
-		test $? -ne 0 && exit 1
-		if test -z "${repo_name}"; then
-			_warn "Repo name is required"
-			continue
-		elif check_remote_repo "${repo_name}"; then
-			_warn "${repo_name} is already created on ${REMOTE_HOST}"
-			continue
-		fi
-		break
-	done
-	repo_desc=$(prompt "Repo description")
+	local repo_name="${1}"
+	local repo_desc=$(prompt "Repo description")
 	test $? -ne 0 && exit 1
 
 	cat >"${Cgitrepos}" <<__EOF__
@@ -153,13 +141,24 @@ __EOF__
 
 ensure_prog "${GIT}"
 test ${#} -eq 0 && usage
-repo="${1}"
-repo_name="${2:-$(basename "${repo}")}"
 apply_config
+repo="${1}"
+while true; do
+	repo_name=$(prompt "Repo name")
+	test $? -ne 0 && exit 1
+	if test -z "${repo_name}"; then
+		_warn "Repo name is required"
+		continue
+	elif check_remote_repo "${repo_name}"; then
+		_warn "${repo_name} is already created on ${REMOTE_HOST}"
+		continue
+	fi
+	break
+done
 make_tmp_dir
 bare_repo=$(clone "${repo}" "${repo_name}")
 test -z "${bare_repo}" && err "Can't clone repository: ${repo}"
-make_cgitrepos || err "Can't make cgitrepos file at: ${Cgitrepos}"
+make_cgitrepos "${repo_name}" || err "Can't make cgitrepos file at: ${Cgitrepos}"
 repo_clone_url=$(sed -n 's/repo\.clone-url=//p' "${Cgitrepos}")
 repo_archive=$(archive "${Tmp_dir}" "${ARCHIVE_BASENAME}")
 test -z "${repo_archive}" && err "Can't archive bare repository: ${bare_repo}"
