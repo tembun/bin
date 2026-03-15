@@ -19,15 +19,29 @@ usage()
 
 prompt()
 {
-	local answ;
+	local answ status
 	printf "${@}: " 1>&2
-	read answ;
+	read answ
+	status=${?}
+	# EOF or trapped signal
+	if [ ${status} -eq 1 ] || [ ${status} -gt 128 ]; then
+		status=1
+	else
+		status=0
+	fi
 	echo "${answ}"
+	return ${status}
+}
+
+_warn()
+{
+	echo "${@}" 1>&2
+	return 1
 }
 
 err()
 {
-	echo "${progname}: ${@}" 1>&2
+	_warn "${progname}: ${@}"
 	exit 1
 }
 
@@ -80,13 +94,32 @@ archive()
 	    -cJf "${dest}" "." && echo "${dest}"
 }
 
-# make_cgitrepos
+check_remote_repo()
+{
+	local repo_name="${1}"
+	ssh -T "${REMOTE_USER}@${REMOTE_HOST}" >/dev/null <<__EOF__
+test -d "${REMOTE_REPO_DEST}/${repo_name}.git" ||
+    grep -q "repo\.url=${repo_name}$" "${REMOTE_CGITREPOS}"
+__EOF__
+}
+
 make_cgitrepos()
 {
-	local repo_name=$(prompt "Repo name")
-	test -n "${repo_name}" || err "Repo name is requred"
-	local repo_desc=$(prompt "Repo description")
-	test -n "${repo_desc}" || err "Repo description is requred"
+	local repo_name repo_desc
+	while true; do
+		repo_name=$(prompt "Repo name")
+		test $? -ne 0 && exit 1
+		if test -z "${repo_name}"; then
+			_warn "Repo name is required"
+			continue
+		elif check_remote_repo "${repo_name}"; then
+			_warn "${repo_name} is already created on ${REMOTE_HOST}"
+			continue
+		fi
+		break
+	done
+	repo_desc=$(prompt "Repo description")
+	test $? -ne 0 && exit 1
 
 	cat >"${Cgitrepos}" <<__EOF__
 
