@@ -4,18 +4,18 @@
 # demacro -- evaluate and print C-preprocessor #define's.
 #
 
-progname=$(basename "${0}")
+progname=$(basename "${0}" .sh)
 : ${TMPDIR:="/tmp"}
 FMT_SPEC_DEFAULT="lu"
 usage()
 {
 	cat 1>&2 <<__EOF__
-usage: ${progname} [-Ii header ...] [-f format-specifier] file-with-defines
+usage: ${progname} [-Ii header ...] [-f format_specifier] <macro_names
 
 Options:
     -I header		Local header file to include.
     -i header		Global header file to include.
-    -f format-specifier	printf(3) specifier to use ('${FMT_SPEC_DEFAULT}' by default).
+    -f format_specifier	printf(3) specifier to use ('${FMT_SPEC_DEFAULT}' by default).
 __EOF__
 	exit 2
 }
@@ -51,12 +51,13 @@ handle_opts()
 
 handle_opts ${@}
 shift $((OPTIND - 1))
-test ${#} -ne 1 && usage
-file="${1}"
-test -f "${file}" || err "${file} is not a file}"
-defines=$(sed -Ee 's/#define //' -e 's/^[A-Z0-9a-z_]+/"&"/' "${file}")
+while read line; do
+	defines="${defines}
+$(echo "${line}" |sed -e 's/#define //' -e 's/	/ /g' |cut -d ' ' -f 1)"
+done
+defines=$(echo "${defines}" |sed '/^$/d')
 
-prog_file=$(mktemp -p "${TMPDIR}" demacro.c.XXXXXXXX)
+prog_file=$(mktemp -p "${TMPDIR}" "${progname}.c.XXXXXXXX")
 test ${?} -ne 0 && err "Can't mktemp(1) at ${TMPDIR}"
 prog=$(cat >"${prog_file}" <<__EOF__
 #include <stdio.h>
@@ -75,11 +76,9 @@ main(void)
 {
 $(IFS="
 "
-for define_line in ${defines}; do
-	define=$(echo "${define_line}" |cut -d ' ' -f 1)
-	value=$(echo "${define_line}" |cut -d ' ' -f 2-)
+for define in ${defines}; do
 cat <<__EOF2__
-	printf("%s %${fmt_spec}\n", ${define}, ${value});
+	printf("%s %${fmt_spec}\n", "${define}", ${define});
 __EOF2__
 done
 unset IFS)
