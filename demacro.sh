@@ -28,7 +28,6 @@ err()
 
 cleanup()
 {
-	test -f "${prog_file}" || test -f "${prog_out}" || return
 	rm -f "${prog_file}" "${prog_out}"
 }
 trap cleanup HUP INT TERM EXIT
