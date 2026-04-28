@@ -88,7 +88,7 @@ do_rec()
 	local aud_opt="$2"
 	local out="$3"
 	ffmpeg \
-	    -video_size 1366x768 \
+	    -video_size 1920x1080 \
 	    -framerate "${framerate}" \
 	    -f x11grab -i :0 \
 	    ${aud_opt} \
