@@ -6,6 +6,8 @@
 
 progname=$(basename "${0}" .sh)
 : ${TMPDIR:="/tmp"}
+PROG_FILE_BASENAME="${progname}.c.XXXXXXXX"
+OUT_FILE_BASENAME="${progname}.out.XXXXXXXX"
 FMT_SPEC_DEFAULT="lu"
 usage()
 {
@@ -56,7 +58,7 @@ $(echo "${line}" |sed -e 's/#define //' -e 's/	/ /g' |cut -d ' ' -f 1)"
 done
 defines=$(echo "${defines}" |sed '/^$/d')
 
-prog_file=$(mktemp -p "${TMPDIR}" "${progname}.c.XXXXXXXX")
+prog_file=$(mktemp -p "${TMPDIR}" "${PROG_FILE_BASENAME}")
 test ${?} -ne 0 && err "Can't mktemp(1) at ${TMPDIR}"
 prog=$(cat >"${prog_file}" <<__EOF__
 #include <stdio.h>
@@ -86,7 +88,7 @@ unset IFS)
 __EOF__
 )
 
-prog_out=$(mktemp -p "${TMPDIR}" demacro.out.XXXXXXXX)
+prog_out=$(mktemp -p "${TMPDIR}" "${OUT_FILE_BASENAME}")
 test ${?} -ne 0 && err "Can't mktemp(1) at ${TMPDIR}"
 cc -x c -o "${prog_out}" "${prog_file}" -I/usr/local/include ||
     err "Can't compile the resulting program"
