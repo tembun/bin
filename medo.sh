@@ -7,7 +7,7 @@
 # {de}muxing ({de}mux).
 #
 
-progname=$(basename "$0" .sh)
+progname=$(basename -- "$0" .sh)
 TMP_DIR="/tmp"
 
 #=============== Common functions ===============
@@ -86,7 +86,7 @@ convert__usage()
 
 convert__get_ext()
 {
-	local file=$(basename "$1")
+	local file=$(basename -- "$1")
 	local ext=$(echo "$file" |grep -Eo '\..+$' |sed 's/^\.//')
 	echo "${ext}"
 }
@@ -97,7 +97,7 @@ convert__get_target_path()
 	local target target_base
 	local ext=$(convert__get_ext "$src")
 	[ -n "$ext" ] || warn "$src extension not found; skip"
-	target_base=$(basename "$src" |sed "s~$ext$~$target_ext~")
+	target_base=$(basename -- "$src" |sed "s~$ext$~$target_ext~")
 	[ ! -d "$target_dir" ] && target_dir=$(dirname "$src")
 	mkdir -p "$target_dir" || err "Can't create directory $target_dir"
 	target="$target_dir/$target_base"
@@ -236,7 +236,7 @@ cut__do_cut()
 	local end="$3"
 	local start_opt end_opt
 	local tmp_prefix=$(mktemp -u "XXXXXXXX")
-	local tmp_name="$TMP_DIR/$tmp_prefix.$(basename $file)"
+	local tmp_name="$TMP_DIR/$tmp_prefix.$(basename -- $file)"
 	local backup_ext="$bak_ext"
 	[ -n "$start" ] && start_opt="-ss $start"
 	[ -n "$end" ] && end_opt="-to $end"
@@ -316,7 +316,7 @@ strip__do_strip()
 {
 	local file="$1"
 	local tmp_prefix=$(mktemp -u "XXXXXXXX")
-	local tmp_name="$TMP_DIR/$tmp_prefix.$(basename "$file")"
+	local tmp_name="$TMP_DIR/$tmp_prefix.$(basename -- "$file")"
 	local backup_ext="$bak_ext"
 	ffmpeg -loglevel 8 -i "$file" -map 0:a -c:a copy -map_metadata -1 \
 	    "$tmp_name" >/dev/null

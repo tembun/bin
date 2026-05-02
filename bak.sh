@@ -69,7 +69,7 @@
 #
 # Resulting tar(1) with the backup is compressed with xz(1).
 
-progname=$(basename "$0" .sh)
+progname=$(basename -- "$0" .sh)
 CFG_FILENAME_STEM="${progname}rc"
 CFG_FILE_SYS="/usr/local/etc/${CFG_FILENAME_STEM}"
 CFG_FILE_USER="$HOME/.${CFG_FILENAME_STEM}"

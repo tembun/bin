@@ -5,7 +5,7 @@
 # normalize -- bulk filename normalizer.
 #
 
-progname=$(basename "$0" .sh)
+progname=$(basename -- "$0" .sh)
 REN_PROGNAME="ren"
 NORMALIZE_PROGNAME="normalize"
 
@@ -69,7 +69,7 @@ rename()
 	if [ "$olddir" = "./" ]; then
 		olddir=""
 	fi
-	oldbase=$(basename "$file")
+	oldbase=$(basename -- "$file")
 	newbase="$oldbase"
 	IFS=$'\n'
 	# Process sed(1) commands (-e options) in cycle: not only it helps to

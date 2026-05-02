@@ -4,7 +4,7 @@
 # mdf -- modify a file with a command.
 #
 
-progname=$(basename "$0" .sh)
+progname=$(basename -- "$0" .sh)
 
 file="$1"
 com="$2"
@@ -14,7 +14,7 @@ if [ -z "$file" ] || [ -z "$com" ]; then
 	exit 1
 fi
 
-tmpf="/tmp/$(basename $file).tmp"
+tmpf="/tmp/$(basename -- $file).tmp"
 {
 	$com <"$file" >"$tmpf" && mv "$tmpf" "$file"
 } || rm -f "$tmpf"

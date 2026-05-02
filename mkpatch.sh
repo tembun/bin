@@ -4,7 +4,7 @@
 # mkpatch -- make and save the source code patch.
 #
 
-progname=$(basename "${0}" .sh)
+progname=$(basename -- "${0}" .sh)
 PATCHES_DIR="${HOME}/dev/patches"
 
 prompt()

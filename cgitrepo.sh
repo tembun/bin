@@ -4,7 +4,7 @@
 # cgitrepo -- create a remote git(1) repository with cgit(1).
 #
 
-progname=$(basename "${0}")
+progname=$(basename -- "${0}")
 CONFIG_PATH="${HOME}/.cgitreporc"
 ARCHIVE_BASENAME="cgitrepo.txz"
 GIT="git"
@@ -90,7 +90,7 @@ archive()
 {
 	local src="${1}"
 	local dest="${src}/${2}"
-	tar -C "${src}" --exclude="./$(basename "${dest}")" \
+	tar -C "${src}" --exclude="./$(basename -- "${dest}")" \
 	    -cJf "${dest}" "." && echo "${dest}"
 }
 
@@ -164,7 +164,7 @@ repo_archive=$(archive "${Tmp_dir}" "${ARCHIVE_BASENAME}")
 test -z "${repo_archive}" && err "Can't archive bare repository: ${bare_repo}"
 transfer "${repo_archive}" "${REMOTE_USER}" "${REMOTE_HOST}" "${REMOTE_TRANSFER_DEST}" ||
     err "Can't transfer ${repo_archive} to ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_TRANFER_DEST}"
-remote_archive="$(basename ${repo_archive})"
+remote_archive="$(basename -- ${repo_archive})"
 extract_remote_archive "${REMOTE_USER}" "${REMOTE_HOST}" "${remote_archive}" ||
     err "Can't extract archive at: ${REMOTE_USER}@${REMOTE_HOST}:${remote_archive}"
 echo "${repo_clone_url}"

@@ -4,7 +4,7 @@
 # demacro -- evaluate and print C-preprocessor #define's.
 #
 
-progname=$(basename "${0}" .sh)
+progname=$(basename -- "${0}" .sh)
 : ${TMPDIR:="/tmp"}
 PROG_FILE_BASENAME="${progname}.c.XXXXXXXX"
 OUT_FILE_BASENAME="${progname}.out.XXXXXXXX"

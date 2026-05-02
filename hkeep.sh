@@ -12,7 +12,7 @@
 # This script is a good candidate for rc(8) startup task.
 #
 
-progname=$(basename "$0" .sh)
+progname=$(basename -- "$0" .sh)
 
 usage()
 {

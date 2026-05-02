@@ -4,7 +4,7 @@
 # yt2 -- download and convert files from YouTube.
 #
 
-progname=$(basename "${0}" .sh)
+progname=$(basename -- "${0}" .sh)
 SETFIB="setfib"
 YTDLP="yt-dlp"
 

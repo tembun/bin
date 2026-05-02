@@ -39,7 +39,7 @@
 #       		This options is not supported if invoked as lsrc.
 #
 
-progname=$(basename "${0}" .sh)
+progname=$(basename -- "${0}" .sh)
 DBG_DIR="/usr/lib/debug"
 DBG_EXT="debug"
 DWARFDUMP="llvm-dwarfdump19"

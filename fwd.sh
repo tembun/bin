@@ -6,7 +6,7 @@
 # Alias to echo string |command.
 #
 
-progname=$(basename "$0" .sh)
+progname=$(basename -- "$0" .sh)
 
 usage()
 {

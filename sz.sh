@@ -4,7 +4,7 @@
 # sz -- sort files/directories by their disk space in human-readable format.
 #
 
-progname=$(basename "$0" .sh)
+progname=$(basename -- "$0" .sh)
 
 usage()
 {

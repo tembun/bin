@@ -18,7 +18,7 @@
 #                   -l	Show current contents of the file.
 #
 
-progname=$(basename "$0" .sh)
+progname=$(basename -- "$0" .sh)
 
 #=============== Common general-purpose functions ===============
 prompt()

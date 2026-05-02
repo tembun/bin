@@ -11,7 +11,7 @@
 
 TEMPLATES_DIR="/usr/local/share/templ"
 
-progname=$(basename "$0" .sh)
+progname=$(basename -- "$0" .sh)
 
 err()
 {

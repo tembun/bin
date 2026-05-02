@@ -11,7 +11,7 @@
 # part of the output name).
 #
 
-progname=$(basename "$0" .sh)
+progname=$(basename -- "$0" .sh)
 DEFAULT_FRAMERATE="30"
 DEFAULT_OUT_EXT="mp4"
 SND_SRC_MIC="mic"
