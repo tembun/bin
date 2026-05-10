@@ -6,6 +6,7 @@
 
 progname=$(basename -- "${0}" .sh)
 SRC_DEFAULT="/usr/src"
+MODE_BUILD="build"
 TARGET_WORLD="world"
 TARGET_KERNEL="kernel"
 TARGET_UNIVERSE="universe"
@@ -16,6 +17,7 @@ KERNEL_BUILD_MAKE="buildkernel"
 KERNEL_INSTALL_MAKE="installkernel"
 UNIVERSE_BUILD_MAKE="${WORLD_BUILD_MAKE} ${KERNEL_BUILD_MAKE}"
 UNIVERSE_INSTALL_MAKE="${WORLD_INSTALL_MAKE} ${KERNEL_INSTALL_MAKE}"
+MODE_DEFAULT="${MODE_BUILD}"
 FILEMON="filemon"
 KERN_CONF_VAR="KERNCONF"
 KERN_INST_NAME_VAR="INSTKERNNAME"
@@ -24,8 +26,8 @@ usage()
 {
 	cat 1>&2 <<__EOF__
 usage: ${progname} [-s source_dir] ['${MODE_INSTALL}'] '${TARGET_WORLD}'
-       ${progname} [-s source_dir] ['${MODE_INSTALL}' [-n install_name]] '${TARGET_KERNEL}' kernel_name
-       ${progname} [-s source_dir] ['${MODE_INSTALL}' [-n install_name]] '${TARGET_UNIVERSE}' kernel_name
+       ${progname} [-s source_dir] ['${MODE_INSTALL}' [-n kern_install_name]] '${TARGET_KERNEL}' kernel_name
+       ${progname} [-s source_dir] ['${MODE_INSTALL}' [-n kern_install_name]] '${TARGET_UNIVERSE}' kernel_name
 __EOF__
 	exit 2
 }
@@ -63,6 +65,11 @@ ensure_kld()
 	kldstat -qm "${mod}" || err "${mod}(4) is not loaded into the kernel"
 }
 
+check_install_mode()
+{
+	test "${mode}" = "${MODE_INSTALL}"
+}
+
 do_build()
 {
 	make -C "${src}" \
@@ -81,7 +88,7 @@ handle_opts()
 	done
 }
 
-handle_opts_install_kern()
+handle_opts_install()
 {
 	local o
 	while getopts "n:" o; do
@@ -98,19 +105,24 @@ src="${src:-"${SRC_DEFAULT}"}"
 arch=$(uname -p)
 kern_conf_dir="${src}/sys/${arch}/conf"
 test ${#} -gt 0 || usage
-if [ "${1}" = "${MODE_INSTALL}" ]; then
-	install_mode="1"
+case "${1}" in
+"${MODE_INSTALL}")
+	mode="${1}"
 	shift
-	handle_opts_install_kern "${@}"
+	handle_opts_install "${@}"
 	shift $((OPTIND - 1))
-fi
+	;;
+*)
+	mode="${MODE_DEFAULT}"
+	;;
+esac
 target="${1}"
 kern="${2}"
 shift 2
 case "${target}" in
 "${TARGET_WORLD}")
 	test -n "${kern}" && usage
-	if [ "${install_mode}" = "1" ]; then
+	if check_install_mode; then
 		make_cmd="${WORLD_INSTALL_MAKE}"
 	else
 		make_cmd="${WORLD_BUILD_MAKE}"
@@ -118,7 +130,7 @@ case "${target}" in
 	;;
 "${TARGET_KERNEL}")
 	require_kern "${kern}"
-	if [ "${install_mode}" = "1" ]; then
+	if check_install_mode; then
 		make_cmd="${KERNEL_INSTALL_MAKE}"
 	else
 		make_cmd="${KERNEL_BUILD_MAKE}"
@@ -126,7 +138,7 @@ case "${target}" in
 	;;
 "${TARGET_UNIVERSE}")
 	require_kern "${kern}"
-	if [ "${install_mode}" = "1" ]; then
+	if check_install_mode; then
 		make_cmd="${UNIVERSE_INSTALL_MAKE}"
 	else
 		make_cmd="${UNIVERSE_BUILD_MAKE}"
@@ -136,7 +148,7 @@ case "${target}" in
 esac
 case "${target}" in
 "${TARGET_KERNEL}"|"${TARGET_UNIVERSE}")
-	if [ "${install_mode}" = "1" ]; then
+	if check_install_mode; then
 		test -n "${kern_inst_name}" && \
 			make_vars="${make_vars} ${KERN_INST_NAME_VAR}=${kern_inst_name}"
 	fi
