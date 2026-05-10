@@ -31,7 +31,7 @@ usage()
 usage: ${progname} [-s source_dir] ['${MODE_INSTALL}'] '${TARGET_WORLD}'
        ${progname} [-s source_dir] ['${MODE_INSTALL}' [-n kern_install_name]] '${TARGET_KERNEL}' kernel_name
        ${progname} [-s source_dir] ['${MODE_INSTALL}' [-n kern_install_name]] '${TARGET_UNIVERSE}' kernel_name
-       ${progname} [-s source_dir] ${MODE_SYNC} [-r remote] branch
+       ${progname} [-s source_dir] '${MODE_SYNC}' [-r remote] branch
 __EOF__
 	exit 2
 }
