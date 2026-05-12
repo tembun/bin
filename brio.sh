@@ -150,7 +150,6 @@ handle_build_install_modes()
 {
 	case "${mode}" in
 	"${MODE_INSTALL}")
-		shift
 		handle_opts_install "${@}"
 		shift $((OPTIND - 1))
 	esac
