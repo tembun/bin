@@ -17,6 +17,12 @@ usage()
 	exit 2
 }
 
+check_lf()
+{
+	local file="${1}"
+	test "$(tail -c 1 "${file}")"
+}
+
 add_lf()
 {
 	local file="${1}"
@@ -39,7 +45,7 @@ shift $((OPTIND - 1))
 paths="${@:-"."}"
 files=$(grep -RIl "" "${paths}")
 for file in ${files}; do
-	test "$(tail -c 1 "${file}")" || continue
+	check_lf "${file}" || continue
 	if [ "${n_flag}" != "1" ]; then
 		add_lf "${file}" || warn "Cannot add newline to file: ${file}"
 	fi
