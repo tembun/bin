@@ -32,8 +32,8 @@ usage()
 	local KERNEL_NAME_STR="kernel_name"
 	cat 1>&2 <<__EOF__
 usage: ${progname} ${COMMON_OPTS} ['${MODE_INSTALL}'] '${TARGET_WORLD}'
-       ${progname} ${COMMON_OPTS} ['${MODE_INSTALL}' ${KERN_INSTALL_OPTS}] '${TARGET_KERNEL}' ${KERNEL_NAME_STR}
-       ${progname} ${COMMON_OPTS} ['${MODE_INSTALL}' ${KERN_INSTALL_OPTS}] '${TARGET_UNIVERSE}' ${KERNEL_NAME_STR}
+       ${progname} ${COMMON_OPTS} ['${MODE_INSTALL}'] '${TARGET_KERNEL}' ${KERN_INSTALL_OPTS} ${KERNEL_NAME_STR}
+       ${progname} ${COMMON_OPTS} ['${MODE_INSTALL}'] '${TARGET_UNIVERSE}' ${KERN_INSTALL_OPTS} ${KERNEL_NAME_STR}
        ${progname} ${COMMON_OPTS} '${MODE_SYNC}' [-r remote] branch
 __EOF__
 	exit 2
@@ -128,15 +128,21 @@ handle_opts()
 	done
 }
 
-handle_opts_install()
+handle_opts_kernel()
 {
+	local mode="${1}"
 	local o
-	while getopts "n:" o; do
-		case "${o}" in
-		n)	kern_inst_name="${OPTARG}" ;;
-		?)	usage ;;
-		esac
-	done
+	shift
+	case "${mode}" in
+	"${MODE_INSTALL}")
+		while getopts "n:" o; do
+			case "${o}" in
+			n)	kern_inst_name="${OPTARG}" ;;
+			?)	usage ;;
+			esac
+		done
+		;;
+	esac
 }
 
 do_make()
@@ -151,18 +157,13 @@ do_make()
 
 handle_build_install_modes()
 {
-	case "${mode}" in
-	"${MODE_INSTALL}")
-		handle_opts_install "${@}"
-		shift $((OPTIND - 1))
-	esac
-	target="${1}"
-	kern="${2}"
-	shift 2
+	local target="${1}"
+	local kern
+	shift
 
 	case "${target}" in
 	"${TARGET_WORLD}")
-		test -n "${kern}" && usage
+		test ${#} -eq 0 || usage
 		if check_install_mode; then
 			make_cmd="${WORLD_INSTALL_MAKE}"
 		else
@@ -170,6 +171,9 @@ handle_build_install_modes()
 		fi
 		;;
 	"${TARGET_KERNEL}")
+		handle_opts_kernel "${mode}" ${@}
+		shift $((OPTIND - 1))
+		kern="${1}"
 		require_kern "${kern}"
 		if check_install_mode; then
 			make_cmd="${KERNEL_INSTALL_MAKE}"
@@ -178,6 +182,9 @@ handle_build_install_modes()
 		fi
 		;;
 	"${TARGET_UNIVERSE}")
+		handle_opts_kernel "${mode}" ${@}
+		shift $((OPTIND - 1))
+		kern="${1}"
 		require_kern "${kern}"
 		if check_install_mode; then
 			make_cmd="${UNIVERSE_INSTALL_MAKE}"
