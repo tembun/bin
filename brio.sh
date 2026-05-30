@@ -27,11 +27,14 @@ GIT="git"
 
 usage()
 {
+	local COMMON_OPTS="[-s source_dir]"
+	local KERN_INSTALL_OPTS="[-n kern_install_name]"
+	local KERNEL_NAME_STR="kernel_name"
 	cat 1>&2 <<__EOF__
-usage: ${progname} [-s source_dir] ['${MODE_INSTALL}'] '${TARGET_WORLD}'
-       ${progname} [-s source_dir] ['${MODE_INSTALL}' [-n kern_install_name]] '${TARGET_KERNEL}' kernel_name
-       ${progname} [-s source_dir] ['${MODE_INSTALL}' [-n kern_install_name]] '${TARGET_UNIVERSE}' kernel_name
-       ${progname} [-s source_dir] '${MODE_SYNC}' [-r remote] branch
+usage: ${progname} ${COMMON_OPTS} ['${MODE_INSTALL}'] '${TARGET_WORLD}'
+       ${progname} ${COMMON_OPTS} ['${MODE_INSTALL}' ${KERN_INSTALL_OPTS}] '${TARGET_KERNEL}' ${KERNEL_NAME_STR}
+       ${progname} ${COMMON_OPTS} ['${MODE_INSTALL}' ${KERN_INSTALL_OPTS}] '${TARGET_UNIVERSE}' ${KERNEL_NAME_STR}
+       ${progname} ${COMMON_OPTS} '${MODE_SYNC}' [-r remote] branch
 __EOF__
 	exit 2
 }
