@@ -17,6 +17,8 @@
 #     <\t><\t>		...
 #     <\t>	out:
 #     <\t><\t>		/tmp/backup.txz	(Optional)
+#     <\t>	compress:
+#     <\t><\t>		'xz' (default) | 'none'
 #     <\t>	root:			(Optional)
 #     <\t><\t>		1
 #     <\t>	dump_ports_to:		(Optional, FreeBSD only)
@@ -44,6 +46,9 @@
 # to strftime(3) for a full list of possible format specifiers.
 # If `out' is omitted, then `/tmp/bak/<strategy>_$DATE(%y-%m-%d_%H-%M-%S).txz'
 # will be used.
+#
+# `compress' names a compression algorithm to be used with tar(1).  If no
+# compression ought to be used, 'none' should be specified.
 #
 # `root' is a flag which should be set to `1', if making a backup with this
 # strategy requires root privileges.  By default it's `0'.
@@ -133,6 +138,10 @@ check_freebsd()
 GLOBAL_PROP_EXCLUDE_ALL="exclude_all"
 STRAT_PROP_INCLUDE="include"
 STRAT_PROP_EXCLUDE="exclude"
+STRAT_PROP_COMPRESS="compress"
+STRAT_PROP_COMPRESS_XZ="xz"
+STRAT_PROP_COMPRESS_NONE="none"
+STRAT_PROP_COMPRESS_DEFAULT="${STRAT_PROP_COMPRESS_XZ}"
 STRAT_PROP_OUT="out"
 STRAT_PROP_ROOT="root"
 STRAT_PROP_DUMP_PORTS="dump_ports_to"
@@ -276,6 +285,24 @@ get_exclude_files()
 	printf "${all}\n${strat}" |sort -u
 }
 
+# get_compress cfg strat_cfg
+get_compress()
+{
+	local compress_val=$(get_strat_cfg_prop "${2}" "${STRAT_PROP_COMPRESS}" 0)
+	local compress=${compress_val:-"${STRAT_PROP_COMPRESS_DEFAULT}"}
+	echo "${compress}"
+}
+
+# validate_compress compress
+validate_compress()
+{
+	local compress="${1}"
+	case "${compress}" in
+	"${STRAT_PROP_COMPRESS_XZ}"|"${STRAT_PROP_COMPRESS_NONE}")	;;
+	*)	err "Unknown 'compress' value: ${compress}" ;;
+	esac
+}
+
 #=============== tar(1) specific functions ===============
 # tar_format_include_options include_files
 tar_format_include_options()
@@ -289,6 +316,18 @@ tar_format_exclude_options()
 	echo "$1" \
 	    |sed 's/\(.*\)/--exclude=\1/' \
 	    |tr '\n' ' '
+}
+
+# tar_format_compress compress
+tar_format_compress()
+{
+	local compress="${1}"
+	local opt
+	case "${compress}" in
+	"${STRAT_PROP_COMPRESS_XZ}")	opt="-J" ;;
+	"${STRAT_PROP_COMPRESS_NONE}")	opt="" ;;
+	esac
+	echo "${opt}"
 }
 
 #=============== Main ===============
@@ -322,7 +361,8 @@ do_bak()
 	local out="${1}"
 	local include_cmd="${2}"
 	local exclude_cmd="${3}"
-	time tar ${exclude_cmd} -cJvf "${out}" ${include_cmd}
+	local compress_cmd="${4}"
+	time tar ${exclude_cmd} ${compress_cmd} -cvf "${out}" ${include_cmd}
 }
 
 cleanup_dumped_port_list()
@@ -382,8 +422,12 @@ root=$(get_strat_cfg_prop "$strat_cfg" "$STRAT_PROP_ROOT" 0)
 validate_root_prop "$strat" "$root"
 out=$(get_strat_cfg_out "$strat" "$strat_cfg")
 validate_out "$out"
+compress=$(get_compress "${cfg}" "${strat_cfg}")
+validate_compress "${compress}"
+compress_cmd=$(tar_format_compress "${compress}")
 
 [ -n "$dump_ports_to" ] && dump_ports "$dump_ports_to"
-do_bak "${out}" "${include_cmd}" "${exclude_cmd}" || { cleanup_dumped_port_list; err "Error during backup"; }
+do_bak "${out}" "${include_cmd}" "${exclude_cmd}" "${compress_cmd}" ||
+    { cleanup_dumped_port_list; err "Error during backup"; }
 echo "$out"
 cleanup_dumped_port_list
