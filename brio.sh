@@ -29,7 +29,7 @@ GIT="git"
 usage()
 {
 	local COMMON_OPTS="[-s source_dir]"
-	local WORLD_INSTALL_OPTS="[-D]"
+	local WORLD_INSTALL_OPTS="[-DE]"
 	local KERN_INSTALL_OPTS="[-n kern_install_name]"
 	local KERNEL_NAME_STR="kernel_name"
 	cat 1>&2 <<__EOF__
@@ -119,6 +119,44 @@ check_install_mode()
 	test "${mode}" = "${MODE_INSTALL}"
 }
 
+world_preinstall()
+{
+	if [ "${no_etcupdate}" != "1" ]; then
+		etcupdate -p || err "etcupdate(8) -p exited with error code"
+	fi
+}
+
+world_postinstall()
+{
+	if [ "${no_etcupdate}" != "1" ]; then
+		etcupdate -B || err "etcupdate(8) -B exited with error code"
+	fi
+}
+
+preinstall()
+{
+	if [ "${target}" = "${TARGET_WORLD}" ] || [ "${target}" = "${TARGET_UNIVERSE}" ]; then
+		world_preinstall
+	fi
+}
+
+premake()
+{
+	check_install_mode && preinstall
+}
+
+postinstall()
+{
+	if [ "${target}" = "${TARGET_WORLD}" ] || [ "${target}" = "${TARGET_UNIVERSE}" ]; then
+		world_postinstall
+	fi
+}
+
+postmake()
+{
+	check_install_mode && postinstall
+}
+
 handle_opts()
 {
 	local o
@@ -138,7 +176,7 @@ handle_build_install_opts()
 	shift 2
 	if [ "${target}" = "${TARGET_WORLD}" ] || [ "${target}" = "${TARGET_UNIVERSE}" ]; then
 		case "${mode}" in
-		"${MODE_INSTALL}")	optstr="${optstr}D" ;;
+		"${MODE_INSTALL}")	optstr="${optstr}DE" ;;
 		esac
 	fi
 	if [ "${target}" = "${TARGET_KERNEL}" ] || [ "${target}" = "${TARGET_UNIVERSE}" ]; then
@@ -149,6 +187,7 @@ handle_build_install_opts()
 	while getopts "${optstr}" o; do
 		case "${o}" in
 			D)	no_delete_old=1 ;;
+			E)	no_etcupdate=1 ;;
 			n)	kern_inst_name="${OPTARG}" ;;
 			?)	usage ;;
 		esac
@@ -219,7 +258,10 @@ handle_build_install_modes()
 
 	ensure_dir "${src}"
 	ensure_kld "${FILEMON}"
+
+	premake
 	do_make "${src}" "${make_cmd}" "${make_vars}"
+	postmake
 }
 
 handle_opts_sync()
