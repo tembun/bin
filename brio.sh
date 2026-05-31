@@ -15,6 +15,7 @@ WORLD_BUILD_MAKE="buildworld"
 WORLD_INSTALL_MAKE="installworld"
 KERNEL_BUILD_MAKE="buildkernel"
 KERNEL_INSTALL_MAKE="installkernel"
+DELETE_OLD_MAKE="delete-old delete-old-libs -DBATCH_DELETE_OLD_FILES"
 UNIVERSE_BUILD_MAKE="${WORLD_BUILD_MAKE} ${KERNEL_BUILD_MAKE}"
 UNIVERSE_INSTALL_MAKE="${WORLD_INSTALL_MAKE} ${KERNEL_INSTALL_MAKE}"
 MODE_SYNC="sync"
@@ -28,12 +29,13 @@ GIT="git"
 usage()
 {
 	local COMMON_OPTS="[-s source_dir]"
+	local WORLD_INSTALL_OPTS="[-D]"
 	local KERN_INSTALL_OPTS="[-n kern_install_name]"
 	local KERNEL_NAME_STR="kernel_name"
 	cat 1>&2 <<__EOF__
-usage: ${progname} ${COMMON_OPTS} ['${MODE_INSTALL}'] '${TARGET_WORLD}'
+usage: ${progname} ${COMMON_OPTS} ['${MODE_INSTALL}'] '${TARGET_WORLD}' ${WORLD_INSTALL_OPTS}
        ${progname} ${COMMON_OPTS} ['${MODE_INSTALL}'] '${TARGET_KERNEL}' ${KERN_INSTALL_OPTS} ${KERNEL_NAME_STR}
-       ${progname} ${COMMON_OPTS} ['${MODE_INSTALL}'] '${TARGET_UNIVERSE}' ${KERN_INSTALL_OPTS} ${KERNEL_NAME_STR}
+       ${progname} ${COMMON_OPTS} ['${MODE_INSTALL}'] '${TARGET_UNIVERSE}' ${WORLD_INSTALL_OPTS} ${KERN_INSTALL_OPTS} ${KERNEL_NAME_STR}
        ${progname} ${COMMON_OPTS} '${MODE_SYNC}' [-r remote] branch
 __EOF__
 	exit 2
@@ -128,21 +130,29 @@ handle_opts()
 	done
 }
 
-handle_opts_kernel()
+handle_build_install_opts()
 {
-	local mode="${1}"
-	local o
-	shift
-	case "${mode}" in
-	"${MODE_INSTALL}")
-		while getopts "n:" o; do
-			case "${o}" in
+	local target="${1}"
+	local mode="${2}"
+	local optstr o
+	shift 2
+	if [ "${target}" = "${TARGET_WORLD}" ] || [ "${target}" = "${TARGET_UNIVERSE}" ]; then
+		case "${mode}" in
+		"${MODE_INSTALL}")	optstr="${optstr}D" ;;
+		esac
+	fi
+	if [ "${target}" = "${TARGET_KERNEL}" ] || [ "${target}" = "${TARGET_UNIVERSE}" ]; then
+		case "${mode}" in
+		"${MODE_INSTALL}")	optstr="${optstr}n:" ;;
+		esac
+	fi
+	while getopts "${optstr}" o; do
+		case "${o}" in
+			D)	no_delete_old=1 ;;
 			n)	kern_inst_name="${OPTARG}" ;;
 			?)	usage ;;
-			esac
-		done
-		;;
-	esac
+		esac
+	done
 }
 
 do_make()
@@ -158,21 +168,24 @@ do_make()
 handle_build_install_modes()
 {
 	local target="${1}"
-	local kern
+	local kern world_install_make kern world_install_make_extra universe_install_make
 	shift
+	handle_build_install_opts "${target}" "${mode}" ${@}
+	shift $((OPTIND - 1))
+	test "${no_delete_old}" != "1" && world_install_make_extra="${DELETE_OLD_MAKE}"
+	world_install_make="${WORLD_INSTALL_MAKE} ${world_install_make_extra}"
+	universe_install_make="${UNIVERSE_INSTALL_MAKE} ${world_install_make_extra}"
 
 	case "${target}" in
 	"${TARGET_WORLD}")
 		test ${#} -eq 0 || usage
 		if check_install_mode; then
-			make_cmd="${WORLD_INSTALL_MAKE}"
+			make_cmd="${world_install_make}"
 		else
 			make_cmd="${WORLD_BUILD_MAKE}"
 		fi
 		;;
 	"${TARGET_KERNEL}")
-		handle_opts_kernel "${mode}" ${@}
-		shift $((OPTIND - 1))
 		kern="${1}"
 		require_kern "${kern}"
 		if check_install_mode; then
@@ -182,12 +195,10 @@ handle_build_install_modes()
 		fi
 		;;
 	"${TARGET_UNIVERSE}")
-		handle_opts_kernel "${mode}" ${@}
-		shift $((OPTIND - 1))
 		kern="${1}"
 		require_kern "${kern}"
 		if check_install_mode; then
-			make_cmd="${UNIVERSE_INSTALL_MAKE}"
+			make_cmd="${universe_install_make}"
 		else
 			make_cmd="${UNIVERSE_BUILD_MAKE}"
 		fi
