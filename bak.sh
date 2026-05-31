@@ -377,6 +377,6 @@ validate_out "$out"
 
 [ -n "$dump_ports_to" ] && dump_ports "$dump_ports_to"
 time tar $exclude_cmd -cJvf "$out" $include_cmd ||
-    { err "Error during backup"; cleanup_dumped_port_list; }
+    { cleanup_dumped_port_list; err "Error during backup"; }
 echo "$out"
 cleanup_dumped_port_list
