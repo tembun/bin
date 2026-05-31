@@ -103,7 +103,7 @@ git_ensure_clean()
 {
 	local path="${1}"
 	local tree_modified=$(${GIT} -C "${path}" status --porcelain)
-	[ -z "${tree_modified}" ] || err "Your working tree is dirty: ${path}"
+	test -z "${tree_modified}" || err "Your working tree is dirty: ${path}"
 }
 
 git_ensure_branch()
