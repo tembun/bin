@@ -317,6 +317,14 @@ validate_out()
 	touch "$out" 2>/dev/null || err "Can't write to $out"
 }
 
+do_bak()
+{
+	local out="${1}"
+	local include_cmd="${2}"
+	local exclude_cmd="${3}"
+	time tar ${exclude_cmd} -cJvf "${out}" ${include_cmd}
+}
+
 cleanup_dumped_port_list()
 {
 	[ -n "$dump_ports_to" ] && rm -f "$dump_ports_to"
@@ -376,7 +384,6 @@ out=$(get_strat_cfg_out "$strat" "$strat_cfg")
 validate_out "$out"
 
 [ -n "$dump_ports_to" ] && dump_ports "$dump_ports_to"
-time tar $exclude_cmd -cJvf "$out" $include_cmd ||
-    { cleanup_dumped_port_list; err "Error during backup"; }
+do_bak "${out}" "${include_cmd}" "${exclude_cmd}" || { cleanup_dumped_port_list; err "Error during backup"; }
 echo "$out"
 cleanup_dumped_port_list
