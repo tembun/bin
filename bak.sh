@@ -75,8 +75,8 @@ CFG_FILE_SYS="/usr/local/etc/${CFG_FILENAME_STEM}"
 CFG_FILE_USER="$HOME/.${CFG_FILENAME_STEM}"
 CFG_FILES="$CFG_FILE_SYS $CFG_FILE_USER"
 CFG_FILES_FMT=$(echo "$CFG_FILES" |sed 's/ /,&/g')
-TMP_DIR="/tmp"
-DEFAULT_BAK_DIR="${TMP_DIR}/${progname}"
+: ${TMPDIR:="/tmp"}
+DEFAULT_BAK_DIR="${TMPDIR}/${progname}"
 DEFAULT_BAK_EXT="txz"
 
 #=============== General-purpose functions ===============
