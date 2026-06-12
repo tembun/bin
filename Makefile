@@ -1,3 +1,4 @@
+# All final scripts should be located in bin/.
 # A script (apart from having a single top-level .sh file) can have a separate
 # directory, where a .sh file can be along with a number of other files (needed
 # for this script to work/be installed properly) in a custom file hierarchy.
@@ -17,7 +18,8 @@
 # (i.e. a nested directory itself), it should set and further use a variable:
 #     PARSEDIR= ${.PARSEDIR:tA}
 
-SRCS:sh= ls |grep -v Makefile
+SRCS_DIR= bin
+SRCS:sh= find ${SRCS_DIR} -mindepth 1 -maxdepth 1
 PREFIX= /usr/local
 BINDIR= bin
 BIN_MODE= 0755
@@ -41,8 +43,8 @@ is_dir:sh= test -d ${src} && echo "1" || echo "0"
 .if ${is_dir} == "1"
 src_file:sh= find ${src} -type f -name "*.sh" |head -n 1
 .endif
-src_base=${src:C/\.[^.]*$//}
-
+src_handle=${src:C/\.[^.]*$//}
+src_base:sh= basename ${src_handle}
 main_target=${PREFIX}/${BINDIR}/${src_base}
 ${main_target}: ${src_file}
 	@mkdir -p ${.TARGET:H}
@@ -72,14 +74,14 @@ SHARE_SUBDIR=
 .if ${SHARE_SRCS}
 .for share_src in ${SHARE_SRCS}
 share_src_base=${share_src:T}
-.OPTIONAL: ${PREFIX}/${SHAREDIR}/${SHARE_SUBDIR}/${share_src_base}
 ${PREFIX}/${SHAREDIR}/${SHARE_SUBDIR}/${share_src_base}: ${share_src}
 	@mkdir -p $$(dirname ${.TARGET})
 	${INSTALL} ${INSTALL_MODE_OPT} ${SHARE_MODE} ${.ALLSRC} ${.TARGET}
 .endfor
 .endif
 share_targets=${SHARE_SRCS:T:C/^/${PREFIX}\/${SHAREDIR}\/${SHARE_SUBDIR}\//}
+.OPTIONAL: ${share_targets}
 
-.PHONY: ${src_base}
-${src_base}: ${main_target} ${link_targets} ${man_gz_target} ${share_targets}
+.PHONY: ${src_handle}
+${src_handle}: ${main_target} ${link_targets} ${man_gz_target} ${share_targets}
 .endfor
