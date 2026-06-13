@@ -281,10 +281,11 @@ handle_sync_mode()
 	shift $((OPTIND - 1))
 	: ${sync_remote:="${SYNC_REMOTE_DEFAULT}"}
 	local branch="${1}"
-	local current_branch=$(git_get_branch "${src}")
+	local current_branch
+	check_prog "${GIT}" || err "You need ${GIT} for ${MODE_SYNC} mode"
+	current_branch=$(git_get_branch "${src}")
 	test -n "${branch}" || usage
 	test "${current_branch}" != "${branch}" || err "Already on branch: ${branch}"
-	check_prog "${GIT}" || err "You need ${GIT} for ${MODE_SYNC} mode"
 	git_ensure_branch "${src}" "${branch}"
 	git_ensure_clean "${src}"
 	${GIT} -C "${src}" checkout "${branch}" || err "Cannot checkout branch: ${branch}"
