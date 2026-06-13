@@ -313,7 +313,7 @@ handle_sync_mode()
 	branch="${1:-"${current_branch}"}"
 	git_ensure_branch "${src}" "${branch}"
 	git_ensure_clean "${src}"
-	if test "${current_branch}" == "${branch}"; then
+	if [ "${current_branch}" = "${branch}" ]; then
 		sync_current_branch "${branch}"
 	else
 		sync_other_branch "${branch}"
