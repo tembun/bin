@@ -36,7 +36,7 @@ usage()
 usage: ${progname} ${COMMON_OPTS} ['${MODE_INSTALL}'] '${TARGET_WORLD}' ${WORLD_INSTALL_OPTS}
        ${progname} ${COMMON_OPTS} ['${MODE_INSTALL}'] '${TARGET_KERNEL}' ${KERN_INSTALL_OPTS} ${KERNEL_NAME_STR}
        ${progname} ${COMMON_OPTS} ['${MODE_INSTALL}'] '${TARGET_UNIVERSE}' ${WORLD_INSTALL_OPTS} ${KERN_INSTALL_OPTS} ${KERNEL_NAME_STR}
-       ${progname} ${COMMON_OPTS} '${MODE_SYNC}' [-r remote] branch
+       ${progname} ${COMMON_OPTS} '${MODE_SYNC}' [-r remote] [branch]
 __EOF__
 	exit 2
 }
@@ -112,6 +112,15 @@ git_ensure_branch()
 	local branch="${2}"
 	local all_branches=$(git_get_all_branches "${path}")
 	contains "${branch}" "${all_branches}" || err "Branch not found: ${branch}"
+}
+
+git_pull_branch()
+{
+	local src="${1}"
+	local remote="${2}"
+	local branch="${3}"
+	${GIT} -C "${src}" pull "${remote}" "${branch}" ||
+	    err "Cannot pull branch ${branch} from remote ${remote}"
 }
 
 check_install_mode()
@@ -275,25 +284,40 @@ handle_opts_sync()
 	done
 }
 
-handle_sync_mode()
+sync_current_branch()
 {
-	handle_opts_sync "${@}"
-	shift $((OPTIND - 1))
-	: ${sync_remote:="${SYNC_REMOTE_DEFAULT}"}
 	local branch="${1}"
-	local current_branch
-	check_prog "${GIT}" || err "You need ${GIT} for ${MODE_SYNC} mode"
-	current_branch=$(git_get_branch "${src}")
-	test -n "${branch}" || usage
-	test "${current_branch}" != "${branch}" || err "Already on branch: ${branch}"
-	git_ensure_branch "${src}" "${branch}"
-	git_ensure_clean "${src}"
+	git_pull_branch "${src}" "${sync_remote}" "${branch}"
+}
+
+sync_other_branch()
+{
+	local branch="${1}"
 	${GIT} -C "${src}" checkout "${branch}" || err "Cannot checkout branch: ${branch}"
+	git_pull_branch "${src}" "${sync_remote}" "${branch}"
 	${GIT} -C "${src}" pull "${sync_remote}" "${branch}" ||
 	    err "Cannot pull branch ${branch} from remote ${sync_remote}"
 	${GIT} -C "${src}" checkout - || err "Cannot checkout to previous branch"
 	${GIT} -C "${src}" rebase "${branch}" ||
 	    err "Cannot rebase ${current_branch} on top of ${branch}"
+}
+
+handle_sync_mode()
+{
+	handle_opts_sync "${@}"
+	shift $((OPTIND - 1))
+	: ${sync_remote:="${SYNC_REMOTE_DEFAULT}"}
+	local branch current_branch
+	check_prog "${GIT}" || err "You need ${GIT} for ${MODE_SYNC} mode"
+	current_branch=$(git_get_branch "${src}")
+	branch="${1:-"${current_branch}"}"
+	git_ensure_branch "${src}" "${branch}"
+	git_ensure_clean "${src}"
+	if test "${current_branch}" == "${branch}"; then
+		sync_current_branch "${branch}"
+	else
+		sync_other_branch "${branch}"
+	fi
 }
 
 handle_opts "${@}"
