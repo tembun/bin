@@ -90,19 +90,19 @@ ensure_kld()
 git_get_branch()
 {
 	local path="${1}"
-	${GIT} -C "${path}" branch --show-current
+	"${GIT}" -C "${path}" branch --show-current
 }
 
 git_get_all_branches()
 {
 	local path="${1}"
-	${GIT} -C "${path}" branch |sed "s/^[\* ]*//"
+	"${GIT}" -C "${path}" branch |sed "s/^[\* ]*//"
 }
 
 git_ensure_clean()
 {
 	local path="${1}"
-	local tree_modified=$(${GIT} -C "${path}" status --porcelain)
+	local tree_modified=$("${GIT}" -C "${path}" status --porcelain)
 	test -z "${tree_modified}" || err "Your working tree is dirty: ${path}"
 }
 
@@ -119,7 +119,7 @@ git_pull_branch()
 	local path="${1}"
 	local remote="${2}"
 	local branch="${3}"
-	${GIT} -C "${path}" pull "${remote}" "${branch}" ||
+	"${GIT}" -C "${path}" pull "${remote}" "${branch}" ||
 	    err "Cannot pull branch ${branch} from remote ${remote}"
 }
 
@@ -293,12 +293,12 @@ sync_current_branch()
 sync_other_branch()
 {
 	local branch="${1}"
-	${GIT} -C "${src}" checkout "${branch}" || err "Cannot checkout branch: ${branch}"
+	"${GIT}" -C "${src}" checkout "${branch}" || err "Cannot checkout branch: ${branch}"
 	git_pull_branch "${src}" "${sync_remote}" "${branch}"
-	${GIT} -C "${src}" pull "${sync_remote}" "${branch}" ||
+	"${GIT}" -C "${src}" pull "${sync_remote}" "${branch}" ||
 	    err "Cannot pull branch ${branch} from remote ${sync_remote}"
-	${GIT} -C "${src}" checkout - || err "Cannot checkout to previous branch"
-	${GIT} -C "${src}" rebase "${branch}" ||
+	"${GIT}" -C "${src}" checkout - || err "Cannot checkout to previous branch"
+	"${GIT}" -C "${src}" rebase "${branch}" ||
 	    err "Cannot rebase ${current_branch} on top of ${branch}"
 }
 
@@ -308,7 +308,7 @@ handle_sync_mode()
 	shift $((OPTIND - 1))
 	: ${sync_remote:="${SYNC_REMOTE_DEFAULT}"}
 	local branch current_branch
-	check_prog "${GIT}" || err "You need ${GIT} for ${MODE_SYNC} mode"
+	check_prog "${GIT}" || err "You need "${GIT}" for ${MODE_SYNC} mode"
 	current_branch=$(git_get_branch "${src}")
 	branch="${1:-"${current_branch}"}"
 	git_ensure_branch "${src}" "${branch}"
