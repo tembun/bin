@@ -29,6 +29,7 @@ MODE_DEFAULT="${MODE_BUILD}"
 FILEMON="filemon"
 KERN_CONF_VAR="KERNCONF"
 KERN_INST_NAME_VAR="INSTKERNNAME"
+MAKE="make"
 GIT="git"
 EXIT_SUCC=0
 EXIT_NO_UPDATES=127
@@ -249,7 +250,7 @@ do_make()
 	local src="${1}"
 	local make_cmd="${2}"
 	local make_vars="${3}"
-	make -C "${src}" \
+	"${MAKE}" -C "${src}" \
 		-j $(sysctl -n hw.ncpu) \
 		${make_cmd} ${make_vars}
 }
