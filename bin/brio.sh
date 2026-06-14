@@ -151,7 +151,9 @@ preinstall()
 
 premake()
 {
-	check_install_mode && preinstall
+	if check_install_mode; then
+		preinstall
+	fi
 }
 
 postinstall()
@@ -163,7 +165,9 @@ postinstall()
 
 postmake()
 {
-	check_install_mode && postinstall
+	if check_install_mode; then
+		postinstall
+	fi
 }
 
 handle_opts()
