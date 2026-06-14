@@ -25,6 +25,8 @@ FILEMON="filemon"
 KERN_CONF_VAR="KERNCONF"
 KERN_INST_NAME_VAR="INSTKERNNAME"
 GIT="git"
+EXIT_SUCC=0
+EXIT_NO_UPDATES=127
 
 usage()
 {
@@ -97,6 +99,12 @@ git_get_all_branches()
 {
 	local path="${1}"
 	"${GIT}" -C "${path}" branch |sed "s/^[\* ]*//"
+}
+
+git_get_rev()
+{
+	local path="${1}"
+	"${GIT}" -C "${path}" rev-parse HEAD
 }
 
 git_ensure_clean()
@@ -291,12 +299,22 @@ handle_opts_sync()
 sync_current_branch()
 {
 	local branch="${1}"
+	local rev_before=$(git_get_rev "${src}")
+	local rev_after
 	git_pull_branch "${src}" "${sync_remote}" "${branch}"
+	rev_after=$(git_get_rev "${src}")
+	if [ "${rev_before}" = "${rev_after}" ]; then
+		return ${EXIT_NO_UPDATES}
+	else
+		return ${EXIT_SUCC}
+	fi
 }
 
 sync_other_branch()
 {
 	local branch="${1}"
+	local rev_before=$(git_get_rev "${src}")
+	local rev_after
 	"${GIT}" -C "${src}" checkout "${branch}" || err "Cannot checkout branch: ${branch}"
 	git_pull_branch "${src}" "${sync_remote}" "${branch}"
 	"${GIT}" -C "${src}" pull "${sync_remote}" "${branch}" ||
@@ -304,6 +322,12 @@ sync_other_branch()
 	"${GIT}" -C "${src}" checkout - || err "Cannot checkout to previous branch"
 	"${GIT}" -C "${src}" rebase "${branch}" ||
 	    err "Cannot rebase ${current_branch} on top of ${branch}"
+	rev_after=$(git_get_rev "${src}")
+	if [ "${rev_before}" = "${rev_after}" ]; then
+		return ${EXIT_NO_UPDATES}
+	else
+		return ${EXIT_SUCC}
+	fi
 }
 
 handle_sync_mode()
