@@ -30,7 +30,7 @@ EXIT_NO_UPDATES=127
 
 usage()
 {
-	local COMMON_OPTS="[-s source_dir]"
+	local COMMON_OPTS="[-C source_dir]"
 	local WORLD_INSTALL_OPTS="[-DE]"
 	local KERN_INSTALL_OPTS="[-n kern_install_name]"
 	local KERNEL_NAME_STR="kernel_name"
@@ -181,9 +181,9 @@ postmake()
 handle_opts()
 {
 	local o
-	while getopts "s:" o; do
+	while getopts "C:" o; do
 		case "${o}" in
-		s)	src="${OPTARG}" ;;
+		C)	src="${OPTARG}" ;;
 		?)	usage ;;
 		esac
 	done
