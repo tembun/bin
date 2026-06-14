@@ -116,10 +116,10 @@ git_ensure_branch()
 
 git_pull_branch()
 {
-	local src="${1}"
+	local path="${1}"
 	local remote="${2}"
 	local branch="${3}"
-	${GIT} -C "${src}" pull "${remote}" "${branch}" ||
+	${GIT} -C "${path}" pull "${remote}" "${branch}" ||
 	    err "Cannot pull branch ${branch} from remote ${remote}"
 }
 
