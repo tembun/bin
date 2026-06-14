@@ -3,6 +3,9 @@
 #
 # brio -- build the FreeBSD system from source.
 #
+# Each single-quoted word in usage() can be replaced with its unambiguous
+# abbreviation).
+#
 
 progname=$(basename -- "${0}" .sh)
 SRC_DEFAULT="/usr/src"
@@ -10,6 +13,7 @@ MODE_BUILD="build"
 TARGET_WORLD="world"
 TARGET_KERNEL="kernel"
 TARGET_UNIVERSE="universe"
+TARGETS="${TARGET_WORLD} ${TARGET_KERNEL} ${TARGET_UNIVERSE}"
 MODE_INSTALL="install"
 WORLD_BUILD_MAKE="buildworld"
 WORLD_INSTALL_MAKE="installworld"
@@ -20,6 +24,7 @@ UNIVERSE_BUILD_MAKE="${WORLD_BUILD_MAKE} ${KERNEL_BUILD_MAKE}"
 UNIVERSE_INSTALL_MAKE="${WORLD_INSTALL_MAKE} ${KERNEL_INSTALL_MAKE}"
 MODE_SYNC="sync"
 SYNC_REMOTE_DEFAULT="origin"
+MODES_EXPOSED="${MODE_INSTALL} ${MODE_SYNC}"
 MODE_DEFAULT="${MODE_BUILD}"
 FILEMON="filemon"
 KERN_CONF_VAR="KERNCONF"
@@ -55,6 +60,11 @@ ensure_dir()
 	test -d "${dir}" || err "${dir} is not a directory"
 }
 
+lines()
+{
+	echo "${1}" |wc -l |sed "s/ //g"
+}
+
 ensure_kern_conf()
 {
 	local kern="${1}"
@@ -81,6 +91,25 @@ contains()
 	local val="${1}"
 	shift
 	echo "${@}" |grep -q "^${val}$"
+}
+
+decode_abbrev()
+{
+	local o strict abbrev variants matches
+	while getopts "s" o; do
+		case "${o}" in
+		s)	strict=1 ;;
+		esac
+	done
+	shift $((OPTIND - 1))
+	abbrev="${1}"
+	shift
+	variants=$(echo "${@}" |tr ' ' '\n')
+	matches=$(echo "${variants}" |grep -E "^${abbrev}")
+	if [ "${strict}" = "1" ] && [ $(lines "${matches}") -ne 1 ]; then
+		return 1
+	fi
+	echo "${matches}"
 }
 
 ensure_kld()
@@ -227,8 +256,10 @@ do_make()
 
 handle_build_install_modes()
 {
-	local target="${1}"
+	local target_abbrev="${1}"
+	local target=$(decode_abbrev -s "${target_abbrev}" "${TARGETS}")
 	local kern world_install_make kern world_install_make_extra universe_install_make
+	test -n "${target}" || usage
 	shift
 	handle_build_install_opts "${target}" "${mode}" ${@}
 	shift $((OPTIND - 1))
@@ -354,13 +385,13 @@ shift $((OPTIND - 1))
 arch=$(uname -p)
 kern_conf_dir="${src}/sys/${arch}/conf"
 test ${#} -gt 0 || usage
-case "${1}" in
-"${MODE_INSTALL}"|"${MODE_SYNC}")
-	mode="${1}"
+_mode=$(decode_abbrev -s "${1}" "${MODES_EXPOSED}")
+if [ -n "${_mode}" ]; then
+	mode="${_mode}"
 	shift
-	;;
-*)	mode="${MODE_DEFAULT}" ;;
-esac
+else
+	mode="${MODE_DEFAULT}"
+fi
 case "${mode}" in
 "${MODE_BUILD}"|"${MODE_INSTALL}")	handle_build_install_modes "${@}" ;;
 "${MODE_SYNC}")				handle_sync_mode "${@}" ;;
