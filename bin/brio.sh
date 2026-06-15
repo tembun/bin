@@ -314,7 +314,6 @@ handle_build_install_modes()
 	*)	test -n "${kern_inst_name}" && usage ;;
 	esac
 
-	ensure_dir "${src}"
 	ensure_kld "${FILEMON}"
 
 	premake
@@ -389,6 +388,7 @@ ensure_freebsd
 handle_opts "${@}"
 shift $((OPTIND - 1))
 : "${src:="${SRC_DEFAULT}"}"
+ensure_dir "${src}"
 arch=$(uname -p)
 kern_conf_dir="${src}/sys/${arch}/conf"
 test ${#} -gt 0 || usage
