@@ -55,6 +55,11 @@ err()
 	exit 1
 }
 
+ensure_freebsd()
+{
+	test "$(uname)" = "FreeBSD" || err "Can be run only on FreeBSD"
+}
+
 ensure_dir()
 {
 	local dir="${1}"
@@ -380,6 +385,7 @@ handle_sync_mode()
 	fi
 }
 
+ensure_freebsd
 handle_opts "${@}"
 shift $((OPTIND - 1))
 : "${src:="${SRC_DEFAULT}"}"
