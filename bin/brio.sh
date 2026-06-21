@@ -242,10 +242,10 @@ handle_build_install_opts()
 	fi
 	while getopts "${optstr}" o; do
 		case "${o}" in
-			D)	no_delete_old=1 ;;
-			E)	no_etcupdate=1 ;;
-			n)	kern_inst_name="${OPTARG}" ;;
-			?)	usage ;;
+		D)	no_delete_old=1 ;;
+		E)	no_etcupdate=1 ;;
+		n)	kern_inst_name="${OPTARG}" ;;
+		?)	usage ;;
 		esac
 	done
 }
