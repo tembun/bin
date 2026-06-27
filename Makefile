@@ -4,7 +4,8 @@
 # make clean		Clean everything.
 # make clean/bin/brio	Clean a particular installed binary.
 #
-# All final scripts should be located in bin/.
+# All final scripts should be located in bin/, libraries (like commonly used
+# subroutines for shell scripts) should be located in libexec/.
 # A script (apart from having a single top-level .sh file) can have a separate
 # directory, where a .sh file can be along with a number of other files (needed
 # for this script to work/be installed properly) in a custom file hierarchy.
@@ -25,11 +26,16 @@
 #     PARSEDIR= ${.PARSEDIR:tA}
 #
 
+LIBEXEC_SRC_DIR= libexec
+SUBR= subr.sh
+SUBR_SRC= ${LIBEXEC_SRC_DIR}/${SUBR}
 SRCS_DIR= bin
 SRCS:sh= find ${SRCS_DIR} -mindepth 1 -maxdepth 1
 PREFIX= /usr/local
 BINDIR= bin
 BIN_MODE= 0755
+LIBEXECDIR= libexec
+LIBEXEC_MODE= 0644
 MANDIR= share/man/man1
 MAN_MODE= 0644
 MANCOMPRESS= gzip -cn
@@ -42,9 +48,17 @@ INSTALL_MODE_OPT= -m
 LINKS_ren= normalize
 LINKS_src= dsrc ksrc lsrc
 
+subr_handle=${SUBR_SRC:C/\.[^.]*$//}
 all_handles=${SRCS:C/\.[^.]*$//}
-all: ${all_handles}
+all: ${subr_handle} ${all_handles}
 
+subr_target=${PREFIX}/${LIBEXECDIR}/${SUBR}
+${subr_target}: ${SUBR_SRC}
+	@mkdir -p ${.TARGET:H}
+	${INSTALL} ${INSTALL_MODE_OPT} ${LIBEXEC_MODE} ${.ALLSRC} ${.TARGET}
+
+.PHONY: ${subr_handle}
+${subr_handle}: ${subr_target}
 .for src in ${SRCS}
 src_file=${src}
 is_dir:sh= test -d ${src} && echo "1" || echo "0"
