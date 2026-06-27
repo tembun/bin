@@ -349,6 +349,7 @@ _ENSURE_USAGE="-e err_prefix -f func [-o] arg ..."
 	eval "${SHIFT_OPTS_EVAL}"
 	has_func "${func}" && test -n "${err_prefix}" && test ${#} -ne 0 ||
 	    _subr_usage ensure
+	local arg=""
 	for arg in ${@}; do
 		if ! ${func} ${arg}; then
 			pushto falses "${arg}"
