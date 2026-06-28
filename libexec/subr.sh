@@ -65,13 +65,14 @@ _format_usage()
 __FORMAT_USAGE_USAGE="[-p prefix] prog str"
 	local o="" prog="" str="" usage_body=""
 	local prog_prefix="${USAGE_PROG_PREFIX}"
+	eval "${BEFORE_OPTS_EVAL}"
 	while getopts "p:" o; do
 		case "${o}" in
 		p)	prog_prefix="${OPTARG}" ;;
 		?)	_subr_usage _format_usage ;;
 		esac
 	done
-	eval "${SHIFT_OPTS_EVAL}"
+	eval "${AFTER_OPTS_EVAL}"
 	prog="${1}"
 	shift
 	str="${@}"
@@ -172,13 +173,14 @@ _PUSHTO_USAGE="[-s separator] var val"
 	local SEPARATOR_DEFAULT="\n"
 	local separator="${SEPARATOR_DEFAULT}"
 	local o=""
+	eval "${BEFORE_OPTS_EVAL}"
 	while getopts "s:" o; do
 		case "${o}" in
 		s)	separator="${OPTARG}" ;;
 		?)	_subr_usage pushto ;;
 		esac
 	done
-	eval "${SHIFT_OPTS_EVAL}"
+	eval "${AFTER_OPTS_EVAL}"
 	test ${#} -eq 2 || _subr_usage pushto
 	local var="${1}"
 	local val="${2}"
@@ -202,13 +204,14 @@ split()
 _SPLIT_USAGE="[-s separator] str"
 	local SEP_DEFAULT=" "
 	local o="" sep="${SEP_DEFAULT}"
+	eval "${BEFORE_OPTS_EVAL}"
 	while getopts "s:" o; do
 		case "${o}" in
 		s)	sep="${OPTARG}" ;;
 		?)	_subr_usage split ;;
 		esac
 	done
-	eval "${SHIFT_OPTS_EVAL}"
+	eval "${AFTER_OPTS_EVAL}"
 	test ${#} -ne 0 || _subr_usage split
 	sub -g "${@}" "${sep}" "\n"
 }
@@ -218,13 +221,14 @@ join()
 _JOIN_USAGE="[-s separator] list"
 	SEP_DEFAULT=" "
 	local o="" sep="${SEP_DEFAULT}"
+	eval "${BEFORE_OPTS_EVAL}"
 	while getopts "s:" o; do
 		case "${o}" in
 		s)	sep="${OPTARG}" ;;
 		?)	_subr_usage join ;;
 		esac
 	done
-	eval "${SHIFT_OPTS_EVAL}"
+	eval "${AFTER_OPTS_EVAL}"
 	test ${#} -ne 0 || _subr_usage join
 	sub -gn "${@}" "\n" "${sep}"
 }
@@ -250,13 +254,14 @@ decode_abbrev()
 {
 _DECODE_ABBREV_USAGE="[-s] abbrev variant ..."
 	local o="" strict="" abbrev="" variants="" matches=""
+	eval "${BEFORE_OPTS_EVAL}"
 	while getopts "s" o; do
 		case "${o}" in
 		s)	strict=1 ;;
 		?)	_subr_usage decode_abbrev ;;
 		esac
 	done
-	eval "${SHIFT_OPTS_EVAL}"
+	eval "${AFTER_OPTS_EVAL}"
 	test ${#} -ge 2 || _subr_usage decode_abbrev
 	abbrev="${1}"
 	shift
@@ -283,13 +288,36 @@ _handle_opts()
 	local o=""
 	_ensure_opts_var
 	_ensure_handle_opts
+	eval "${BEFORE_OPTS_EVAL}"
 	while getopts "${OPTS}" o; do
 		handle_opts "${o}"
 	done
 }
 
-SHIFT_OPTS_EVAL='shift $((OPTIND - 1))'
-HANDLE_OPTS_EVAL="_handle_opts ${@}; eval ${SHIFT_OPTS_EVAL}"
+# It's very important to restore OPTIND back to 1 when we're going to getopts(),
+# because shell wouldn't do that.  And we do need to do that, because getopts()
+# in many shell implementations will not parse options correctly if OPTIND is
+# not at 1.  In other words, if we call the same function (that makes use of
+# getopts()) multiple times, it will work on the first invocation, but won't
+# on the second one, because OPTIND is shifted from 1 after first call.  The
+# same will happen in we call just two different functions with getopts() in a
+# row.  So we need to restore OPTIND before every getopts().
+# The entire thing is understandable, because usually getopts() is called only
+# once for the entire script, and not for the separate function (so it doesn't
+# make much sense to restore OPTIND by default).
+#
+# Regarding _OLD_OPTIND: this is not that necessary, but it would be just a
+# good practice to remember the current OPTIND and restore it after we're done
+# with getopts() in this function, because potentially we're able to call
+# another subroutine that makes use of getopts() while we're already in
+# getopts().  But it will work only 1-level-deep, otherwise we have to make
+# sort custom call stack, and that is obviously doesn't worth it.  As a rule of
+# thumb, just don't make use of external functions while in getopts().  In
+# fact, that would not be hard, I've never had a need for that, usually we just
+# set binary flags in getopts().
+BEFORE_OPTS_EVAL='_OLD_OPTIND=${OPTIND}; OPTIND=1'
+AFTER_OPTS_EVAL='shift $((OPTIND - 1)); OPTIND="${_OLD_OPTIND}"'
+HANDLE_OPTS_EVAL="_handle_opts ${@}; eval ${AFTER_OPTS_EVAL}"
 
 # Escape character what in where.
 # TODO: make usage: '-c char ... where' and make '/' a default character to escape.
@@ -310,6 +338,7 @@ sub()
 _SUB_USAGE="[-gn] where what with"
 	local o="" where="" what="" with="" g_flag="" no_newline="" flags="" \
 	    print_func=""
+	eval "${BEFORE_OPTS_EVAL}"
 	while getopts "gn" o; do
 		case "${o}" in
 		g)	g_flag=1 ;;
@@ -376,6 +405,7 @@ try_ext()
 {
 _TRY_EXT_USAGE="[-al] filepath ext ..."
 	local o="" all="" list=""
+	eval "${BEFORE_OPTS_EVAL}"
 	while getopts "al" o; do
 		case "${o}" in
 		a)	all=1 ;;
@@ -383,7 +413,7 @@ _TRY_EXT_USAGE="[-al] filepath ext ..."
 		?)	_subr_usage try_ext ;;
 		esac
 	done
-	eval "${SHIFT_OPTS_EVAL}"
+	eval "${AFTER_OPTS_EVAL}"
 	test ${#} -ge 2 || _subr_usage try_ext
 	local filepath="${1}"
 	shift
@@ -404,6 +434,7 @@ ensure()
 {
 _ENSURE_USAGE="-e err_prefix -f func [-o] arg ..."
 	local o="" func="" or="" err_prefix="" falses="" found=""
+	eval "${BEFORE_OPTS_EVAL}"
 	while getopts "e:f:o" o; do
 		case "${o}" in
 		e)	err_prefix="${OPTARG}" ;;
@@ -412,7 +443,7 @@ _ENSURE_USAGE="-e err_prefix -f func [-o] arg ..."
 		?)	_subr_usage ensure ;;
 		esac
 	done
-	eval "${SHIFT_OPTS_EVAL}"
+	eval "${AFTER_OPTS_EVAL}"
 	has_func "${func}" && test -n "${err_prefix}" && test ${#} -ne 0 ||
 	    _subr_usage ensure
 	local arg=""
@@ -440,13 +471,14 @@ ensure_dir()
 {
 _ENSURE_DIR_USAGE="[-o] path ..."
 	local o="" or="" ensure_opts=""
+	eval "${BEFORE_OPTS_EVAL}"
 	while getopts "o" o; do
 		case "${o}" in
 		o)	or=1 ;;
 		?)	_subr_usage ensure_dir
 		esac
 	done
-	eval "${SHIFT_OPTS_EVAL}"
+	eval "${AFTER_OPTS_EVAL}"
 	test ${#} -ne 0 || _subr_usage ensure_dir
 	test "${or}" = "1" && appendto ensure_opts "-o"
 	ensure -f check_dir -e "Directories not found" ${ensure_opts} ${@}
@@ -456,6 +488,7 @@ check_file()
 {
 _CHECK_FILE_USAGE="[-op] arg ..."
 	local o="" or="" print=""
+	eval "${BEFORE_OPTS_EVAL}"
 	while getopts "op" o; do
 		case "${o}" in
 		o)	or=1 ;;
@@ -463,7 +496,7 @@ _CHECK_FILE_USAGE="[-op] arg ..."
 		?)	_subr_usage check_file ;;
 		esac
 	done
-	eval "${SHIFT_OPTS_EVAL}"
+	eval "${AFTER_OPTS_EVAL}"
 	test ${#} -ne 0 || _subr_usage check_file
 	local file="" found=0
 	for file in ${@}; do
@@ -490,13 +523,14 @@ ensure_file()
 {
 _ENSURE_FILE_USAGE="[-o] path ...]"
 	local o="" or="" ensure_opts=""
+	eval "${BEFORE_OPTS_EVAL}"
 	while getopts "o" o; do
 		case "${o}" in
 		o)	or=1 ;;
 		?)	_subr_usage ensure_file
 		esac
 	done
-	eval "${SHIFT_OPTS_EVAL}"
+	eval "${AFTER_OPTS_EVAL}"
 	test ${#} -ne 0 || _subr_usage ensure_file
 	test "${or}" = "1" && appendto ensure_opts "-o"
 	ensure -f check_file -e "${ERR_FILE_NOT_FOUND_PREFIX}" ${ensure_opts} ${@}
@@ -517,13 +551,14 @@ _ENSURE_PROG_USAGE="[-e err_prefix] prog ..."
 	local ERR_PREFIX_DEFAULT="Missing programs"
 	local err_prefix="${ERR_PREFIX_DEFAULT}"
 	local o=""
+	eval "${BEFORE_OPTS_EVAL}"
 	while getopts "e:" o; do
 		case "${o}" in
 		e)	err_prefix="${OPTARG}" ;;
 		?)	_subr_usage ensure_prog ;;
 		esac
 	done
-	eval "${SHIFT_OPTS_EVAL}"
+	eval "${AFTER_OPTS_EVAL}"
 	test ${#} -gt 0 || _subr_usage ensure_prog
 	local missing=""
 	for prog in $(echo "${@}" |sort -u); do
@@ -537,13 +572,14 @@ match_first()
 {
 _MATCH_FIRST_USAGE="-f func arg ..."
 	local o="" func=""
+	eval "${BEFORE_OPTS_EVAL}"
 	while getopts "f:" o; do
 		case "${o}" in
 		f)	func="${OPTARG}" ;;
 		?)	_subr_usage ;;
 		esac
 	done
-	eval "${SHIFT_OPTS_EVAL}"
+	eval "${AFTER_OPTS_EVAL}"
 	has_func "${func}" && test ${#} -ne 0 || _subr_usage match_first
 	local arg=""
 	for arg in ${@}; do
