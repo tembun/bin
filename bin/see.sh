@@ -10,7 +10,8 @@ PLAYER="mpv"
 PLAYER_SUB_FILE_OPT="--sub-file"
 SUB_EXT="srt"
 SUB_SUFFIX=".${SUB_EXT}"
-MOVIE_DIRS="${HOME}/flm ${HOME}/tmp"
+MOVIE_DIRS_DEFAULT="${HOME}/flm ${HOME}/tmp"
+: ${MOVIE_DIRS:="${MOVIE_DIRS_DEFAULT}"}
 _MOVIE_EXTS="mp4 mkv avi mov"	# Lowercase versions of such
 MOVIE_EXTS="${_MOVIE_EXTS} $(upper "${_MOVIE_EXTS}")"
 
