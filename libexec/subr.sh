@@ -138,6 +138,16 @@ _UPPER_USAGE="arg ..."
 	echo "${@}" |tr "[:lower:]" "[:upper:]"
 }
 
+# Check if list contains a value.
+contains()
+{
+_CONTAINS_USAGE="value list"
+	test ${#} -ge 2 || _subr_usage contains
+	local val="${1}"
+	shift
+	split "${@}" |grep -q "^${val}$"
+}
+
 # Get string length in bytes.
 len()
 {
