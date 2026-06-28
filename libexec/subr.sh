@@ -290,21 +290,28 @@ _ESC_USAGE="where what"
 # -g	Perform a global substitution.
 sub()
 {
-_SUB_USAGE="[-g] where what with"
-	local o="" where="" what="" with="" g_flag="" flags=""
-	while getopts "g" o; do
+_SUB_USAGE="[-gn] where what with"
+	local o="" where="" what="" with="" g_flag="" no_newline="" flags="" \
+	    print_func=""
+	while getopts "gn" o; do
 		case "${o}" in
 		g)	g_flag=1 ;;
+		n)	no_newline=1 ;;
 		?)	_subr_usage sub ;;
 		esac
 	done
-	eval "${SHIFT_OPTS_EVAL}"
+	eval "${AFTER_OPTS_EVAL}"
 	test ${#} -eq 3 || _subr_usage sub
 	where="${1}"
 	what=$(esc "${2}" "/")
 	with=$(esc "${3}" "/")
 	check_flag "${g_flag}" && flags="g"
-	echo "${where}" |perl -0pe "s/${what}/${with}/${flags}"
+	if [ "${no_newline}" = "1" ]; then
+		print_func="printf"
+	else
+		print_func="echo"
+	fi
+	"${print_func}" "${where}" |perl -0pe "s/${what}/${with}/${flags}"
 }
 
 # Repeat string str times times.
