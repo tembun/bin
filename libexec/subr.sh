@@ -368,6 +368,38 @@ _GET_EXT_USAGE="file ..."
 	done
 }
 
+# Try to find an existing extension for a cut filepath (that lacks extension).
+# Returns a full path to the file.
+# -a	Return all existing path combinations.
+# -l	Just return all possible path combination (even unexisting ones).
+try_ext()
+{
+_TRY_EXT_USAGE="[-al] filepath ext ..."
+	local o="" all="" list=""
+	while getopts "al" o; do
+		case "${o}" in
+		a)	all=1 ;;
+		l)	list=1 ;;
+		?)	_subr_usage try_ext ;;
+		esac
+	done
+	eval "${SHIFT_OPTS_EVAL}"
+	test ${#} -ge 2 || _subr_usage try_ext
+	local filepath="${1}"
+	shift
+	local ext="" file=""
+	for ext in ${@}; do
+		file="${filepath}.${ext}"
+		if [ "${list}" = "1" ]; then
+			echo "${file}"
+			continue
+		fi
+		check_file "${file}" || continue
+		echo "${file}"
+		test "${all}" = "1" || return 0
+	done
+}
+
 ensure()
 {
 _ENSURE_USAGE="-e err_prefix -f func [-o] arg ..."
