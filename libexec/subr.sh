@@ -199,17 +199,34 @@ _APPENDTO_USAGE="var val"
 
 split()
 {
-_SPLIT_USAGE="-s str list"
-	local o="" str=""
+_SPLIT_USAGE="[-s separator] str"
+	local SEP_DEFAULT=" "
+	local o="" sep="${SEP_DEFAULT}"
 	while getopts "s:" o; do
 		case "${o}" in
-		s)	str="${OPTARG}" ;;
+		s)	sep="${OPTARG}" ;;
 		?)	_subr_usage split ;;
 		esac
 	done
 	eval "${SHIFT_OPTS_EVAL}"
-	test -n "${str}" && test ${#} -gt 0 || _subr_usage split
-	sub -g "${@}" "\n" "${str}" |sed "s/${str}$//"
+	test ${#} -ne 0 || _subr_usage split
+	sub -g "${@}" "${sep}" "\n"
+}
+
+join()
+{
+_JOIN_USAGE="[-s separator] list"
+	SEP_DEFAULT=" "
+	local o="" sep="${SEP_DEFAULT}"
+	while getopts "s:" o; do
+		case "${o}" in
+		s)	sep="${OPTARG}" ;;
+		?)	_subr_usage join ;;
+		esac
+	done
+	eval "${SHIFT_OPTS_EVAL}"
+	test ${#} -ne 0 || _subr_usage join
+	sub -gn "${@}" "\n" "${sep}"
 }
 
 # Concatenate lists (lines) and make them flat (single-line, separated with
@@ -218,7 +235,7 @@ flat()
 {
 _FLAT_USAGE="list ..."
 	test ${#} -gt 0 || _subr_usage flat
-	split -s ", " "${@}"
+	join -s ", " "${@}"
 }
 
 FLAG_CLEAR="0"
