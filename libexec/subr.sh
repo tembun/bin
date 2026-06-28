@@ -460,9 +460,32 @@ _ENSURE_USAGE="-e err_prefix -f func [-o] arg ..."
 
 check_dir()
 {
-_CHECK_DIR_USAGE="arg"
-	test ${#} -eq 1 || _subr_usage check_dir
-	test -d "${1}"
+_CHECK_DIR_USAGE="[-op] arg ..."
+	local o="" or="" print=""
+	eval "${BEFORE_OPTS_EVAL}"
+	while getopts "op" o; do
+		case "${o}" in
+		o)	or=1 ;;
+		p)	print=1 ;;
+		?)	_subr_usage check_dir ;;
+		esac
+	done
+	eval "${AFTER_OPTS_EVAL}"
+	test ${#} -ne 0 || _subr_usage check_dir
+	local file="" found=0
+	for file in ${@}; do
+		if [ ! -d "${file}" ]; then
+			test "${or}" = "1" || return 1
+			continue
+		fi
+		found=1
+		test "${or}" = "1" && test "${print}" = "1" && echo "${file}"
+	done
+	if [ "${print}" = "1" ]; then
+		return 0
+	else
+		return "${found}" = "1"
+	fi
 }
 
 # Terminate the script if at least one of the paths is not a directory.
