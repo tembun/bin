@@ -449,6 +449,11 @@ _CHECK_FILE_USAGE="[-op] arg ..."
 	fi
 }
 
+ERR_FILE_NOT_FOUND_PREFIX="Files not found"
+err_file_not_found()
+{
+	err "${ERR_FILE_NOT_FOUND_PREFIX}: $(flat ${@})"
+}
 ensure_file()
 {
 _ENSURE_FILE_USAGE="[-o] path ...]"
@@ -462,7 +467,7 @@ _ENSURE_FILE_USAGE="[-o] path ...]"
 	eval "${SHIFT_OPTS_EVAL}"
 	test ${#} -ne 0 || _subr_usage ensure_file
 	test "${or}" = "1" && appendto ensure_opts "-o"
-	ensure -f check_file -e "Files not found" ${ensure_opts} ${@}
+	ensure -f check_file -e "${ERR_FILE_NOT_FOUND_PREFIX}" ${ensure_opts} ${@}
 }
 
 check_prog()
