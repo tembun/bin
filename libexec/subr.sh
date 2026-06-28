@@ -422,9 +422,31 @@ _ENSURE_DIR_USAGE="[-o] path ..."
 
 check_file()
 {
-_CHECK_FILE_USAGE="arg"
-	test ${#} -eq 1 || _subr_usage check_file
-	test -f "${1}"
+_CHECK_FILE_USAGE="[-op] arg ..."
+	local o="" or="" print=""
+	while getopts "op" o; do
+		case "${o}" in
+		o)	or=1 ;;
+		p)	print=1 ;;
+		?)	_subr_usage check_file ;;
+		esac
+	done
+	eval "${SHIFT_OPTS_EVAL}"
+	test ${#} -ne 0 || _subr_usage check_file
+	local file="" found=0
+	for file in ${@}; do
+		if [ ! -f "${file}" ]; then
+			test "${or}" = "1" || return 1
+			continue
+		fi
+		found=1
+		test "${or}" = "1" && test "${print}" = "1" && echo "${file}"
+	done
+	if [ "${print}" = "1" ]; then
+		return 0
+	else
+		return "${found}" = "1"
+	fi
 }
 
 ensure_file()
