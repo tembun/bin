@@ -532,6 +532,7 @@ _ENSURE_PROG_USAGE="[-e err_prefix] prog ..."
 	test -z "${missing}" || err "${err_prefix}: $(flat "${missing}")"
 }
 
+# XXX: Maybe should transform it into more general check() interface?
 match_first()
 {
 _MATCH_FIRST_USAGE="-f func arg ..."
