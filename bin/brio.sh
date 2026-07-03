@@ -26,6 +26,8 @@ MODE_SYNC="sync"
 SYNC_REMOTE_DEFAULT="origin"
 MODES_EXPOSED="${MODE_INSTALL} ${MODE_SYNC}"
 MODE_DEFAULT="${MODE_BUILD}"
+JOBS_MAX=$(sysctl -n hw.ncpu)
+JOBS_DEFAULT="${JOBS_MAX}"
 FILEMON="filemon"
 KERN_CONF_VAR="KERNCONF"
 KERN_INST_NAME_VAR="INSTKERNNAME"
@@ -36,7 +38,7 @@ EXIT_NO_UPDATES=127
 
 usage()
 {
-	local COMMON_OPTS="[-C source_dir]"
+	local COMMON_OPTS="[-C source_dir] [-j jobs]"
 	local WORLD_INSTALL_OPTS="[-DE]"
 	local KERN_INSTALL_OPTS="[-n kern_install_name]"
 	local KERNEL_NAME_STR="kernel_name"
@@ -101,17 +103,17 @@ contains()
 
 decode_abbrev()
 {
-	local o strict abbrev variants matches
+	local o="" strict=""
 	while getopts "s" o; do
 		case "${o}" in
 		s)	strict=1 ;;
 		esac
 	done
 	shift $((OPTIND - 1))
-	abbrev="${1}"
+	local abbrev="${1}"
 	shift
-	variants=$(echo "${@}" |tr ' ' '\n')
-	matches=$(echo "${variants}" |grep -E "^${abbrev}")
+	local variants=$(echo "${@}" |tr ' ' '\n')
+	local matches=$(echo "${variants}" |grep -E "^${abbrev}")
 	if [ "${strict}" = "1" ] && [ $(lines "${matches}") -ne 1 ]; then
 		return 1
 	fi
@@ -215,10 +217,11 @@ postmake()
 
 handle_opts()
 {
-	local o
-	while getopts "C:" o; do
+	local o=""
+	while getopts "C:j:" o; do
 		case "${o}" in
 		C)	src="${OPTARG}" ;;
+		j)	Jobs="${OPTARG}" ;;
 		?)	usage ;;
 		esac
 	done
@@ -228,7 +231,7 @@ handle_build_install_opts()
 {
 	local target="${1}"
 	local mode="${2}"
-	local optstr o
+	local optstr="" o=""
 	shift 2
 	if [ "${target}" = "${TARGET_WORLD}" ] || [ "${target}" = "${TARGET_UNIVERSE}" ]; then
 		case "${mode}" in
@@ -256,8 +259,8 @@ do_make()
 	local make_cmd="${2}"
 	local make_vars="${3}"
 	"${MAKE}" -C "${src}" \
-		-j $(sysctl -n hw.ncpu) \
-		${make_cmd} ${make_vars}
+	    -j "${Jobs}" \
+	    ${make_cmd} ${make_vars}
 }
 
 handle_build_install_modes()
@@ -387,7 +390,8 @@ handle_sync_mode()
 ensure_freebsd
 handle_opts "${@}"
 shift $((OPTIND - 1))
-: "${src:="${SRC_DEFAULT}"}"
+: ${src:="${SRC_DEFAULT}"}
+: ${Jobs:="${JOBS_DEFAULT}"}
 ensure_dir "${src}"
 arch=$(uname -p)
 kern_conf_dir="${src}/sys/${arch}/conf"
