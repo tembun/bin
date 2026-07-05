@@ -317,7 +317,7 @@ _handle_opts()
 # set binary flags in getopts().
 BEFORE_OPTS_EVAL='_OLD_OPTIND=${OPTIND}; OPTIND=1'
 AFTER_OPTS_EVAL='shift $((OPTIND - 1)); OPTIND="${_OLD_OPTIND}"'
-HANDLE_OPTS_EVAL="_handle_opts ${@}; eval ${AFTER_OPTS_EVAL}"
+HANDLE_OPTS_EVAL='_handle_opts ${@}; eval ${AFTER_OPTS_EVAL}'
 
 # Escape character what in where.
 # TODO: make usage: '-c char ... where' and make '/' a default character to escape.
