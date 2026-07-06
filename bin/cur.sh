@@ -6,7 +6,7 @@
 
 . "$(dirname $(readlink -f "${0}"))/../libexec/subr.sh"
 
-define_usage -- "-f from -t to amount"
+define_usage -- "-f from -t to [-v] amount"
 
 URL="https://api.frankfurter.dev/v2/rate"
 JQ="jq"
@@ -26,16 +26,22 @@ convert_currency()
 	local amount="${3}"
 	local rate=$(fetch -qo - $(get_convert_currency_url "${from}" "${to}" "${amount}") \
 	    |"${JQ}" ".rate")
-	bc -e "${rate} * ${amount}" \
-	    |sed -E "s/\.0+$//"		# Trim trailing floating point zeros
+	local res_amount=$(bc -e "${rate} * ${amount}" \
+	    |sed -E "s/\.0+$//")		# Trim trailing floating point zeros
+	if [ "${Verbose}" = "1" ]; then
+		echo "${amount} $(upper "${from}") = ${res_amount} $(upper "${to}")"
+	else
+		echo "${res_amount}"
+	fi
 }
 
-OPTS="f:t:"
+OPTS="f:t:v"
 handle_opts()
 {
 	case "${1}" in
 	f)	From="${OPTARG}" ;;
 	t)	To="${OPTARG}" ;;
+	v)	Verbose=1 ;;
 	?)	usage ;;
 	esac
 }
