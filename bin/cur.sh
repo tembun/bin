@@ -24,6 +24,7 @@ convert_currency()
 	local from="${1}"
 	local to="${2}"
 	local amount="${3}"
+	# TODO: Abstract fetching (fetch/curl/wget)
 	local rate=$(fetch -qo - $(get_convert_currency_url "${from}" "${to}" "${amount}") \
 	    |"${JQ}" ".rate")
 	local res_amount=$(bc -e "${rate} * ${amount}" \
