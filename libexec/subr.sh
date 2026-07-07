@@ -472,19 +472,19 @@ _CHECK_DIR_USAGE="[-op] arg ..."
 	done
 	eval "${AFTER_OPTS_EVAL}"
 	test ${#} -ne 0 || _subr_usage check_dir
-	local file="" found=0
-	for file in ${@}; do
-		if [ ! -d "${file}" ]; then
+	local dir="" found=0
+	for dir in ${@}; do
+		if [ ! -d "${dir}" ]; then
 			test "${or}" = "1" || return 1
 			continue
 		fi
 		found=1
-		test "${or}" = "1" && test "${print}" = "1" && echo "${file}"
+		test "${or}" = "1" && test "${print}" = "1" && echo "${dir}"
 	done
 	if [ "${print}" = "1" ]; then
 		return 0
 	else
-		return "${found}" = "1"
+		test "${found}" = "1"
 	fi
 }
 
@@ -533,7 +533,7 @@ _CHECK_FILE_USAGE="[-op] arg ..."
 	if [ "${print}" = "1" ]; then
 		return 0
 	else
-		return "${found}" = "1"
+		test "${found}" = "1"
 	fi
 }
 
