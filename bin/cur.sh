@@ -28,7 +28,7 @@ convert_currency()
 	local rate=$(fetch -qo - $(get_convert_currency_url "${from}" "${to}" "${amount}") \
 	    |"${JQ}" ".rate")
 	local res_amount=$(bc -e "${rate} * ${amount}" \
-	    |sed -E "s/(\.*)(0+$)/\1/")		# Trim trailing floating point zeros
+	    |sed -Ee "s/(\.*)(0+$)/\1/" -e "s/\.$//")		# Trim trailing floating point zeros
 	if [ "${Verbose}" = "1" ]; then
 		echo "${amount} $(upper "${from}") = ${res_amount} $(upper "${to}")"
 	else
