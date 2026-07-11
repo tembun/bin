@@ -250,23 +250,25 @@ check_flag()
 	test "${1}" = "${FLAG_SET}"
 }
 
-decode_abbrev()
+# Print possible abbreviation completions from variants.
+# -s	Print a result only if there's a single match, oterwise return 1.
+complete_abbrev()
 {
-_DECODE_ABBREV_USAGE="[-s] abbrev variant ..."
-	local o="" strict="" abbrev="" variants="" matches=""
+_COMPLETE_ABBREV_USAGE="[-s] abbrev variant ..."
+	local o="" strict=""
 	eval "${BEFORE_OPTS_EVAL}"
 	while getopts "s" o; do
 		case "${o}" in
 		s)	strict=1 ;;
-		?)	_subr_usage decode_abbrev ;;
+		?)	_subr_usage complete_abbrev ;;
 		esac
 	done
 	eval "${AFTER_OPTS_EVAL}"
-	test ${#} -ge 2 || _subr_usage decode_abbrev
-	abbrev="${1}"
+	test "${#}" -ge 2 || _subr_usage complete_abbrev
+	local abbrev="${1}"
 	shift
-	variants=$(sub -g "${@}" " " "\n")
-	matches=$(echo "${variants}" |grep -E "^${abbrev}")
+	local variants=$(sub -g "${@}" " " "\n")
+	local matches=$(echo "${variants}" |grep -E "^${abbrev}")
 	if [ "${strict}" = "1" ] && [ $(lines "${matches}") -ne 1 ]; then
 		return 1
 	fi
