@@ -518,7 +518,7 @@ _handle_opts()
 	local handle_opts_func=$(_get_mode_handle_opts_func $(get_mode))
 	has_func "${handle_opts_func}" || _subr_err "${handle_opts_func}() is not defined"
 	eval "${BEFORE_OPTS_EVAL}"
-	while getopts "${opts_var}" o; do
+	while getopts "${opts_var_val}" o; do
 		"${handle_opts_func}" "${o}"
 	done
 }
