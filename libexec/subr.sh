@@ -20,7 +20,7 @@ TMP_SYS="/${TMP_DIRNAME}"
 # warnx arg ...
 warnx()
 {
-	echo -- "${@}" 1>&2
+	echo "${@}" 1>&2
 }
 
 # warn arg ...
@@ -77,9 +77,9 @@ __FORMAT_USAGE_USAGE="[-p prefix] prog str"
 	local prog="${1}"
 	shift
 	local str="${@}"
-	local usage_body=$(echo -- "${str}" |sed -e "s/^/${prog} /" \
+	local usage_body=$(echo "${str}" |sed -e "s/^/${prog} /" \
 	    -e "2,\$s/^/$(repeat " " $(len "${usage_prefix}"))/")
-	echo -- "${usage_prefix}${usage_body}"
+	echo "${usage_prefix}${usage_body}"
 }
 
 _subr_usage()
@@ -90,7 +90,7 @@ _USAGE_USAGE="subr_func_name"
 	# Don't dare to make a mistake here...
 	test -n "${func_name}" || _subr_usage usage
 	func_usage_var="_$(upper "${func_name}")_USAGE"
-	func_usage_str=$(eval echo -- "\"\${${func_usage_var}}\"")
+	func_usage_str=$(eval echo "\"\${${func_usage_var}}\"")
 	test -n "${func_usage_str}" ||
 	    _subr_err "_subr_usage: ${func_usage_var} is not defined"
 	# No need for a trailing space after USAGE_PREFIX, because it's
@@ -124,7 +124,7 @@ __POPULATE_MODE_USAGE_ALL_USAGE="mode usage_str ..."
 	test "${#}" -ge 2 || _subr_usage _populate_mode_usage_all
 	local mode="${1}"
 	shift
-	local usage_body=$(echo -- "${@}" |sed "s/^/$(_quote_mode "${mode}") /")
+	local usage_body=$(echo "${@}" |sed "s/^/$(_quote_mode "${mode}") /")
 	pushto "${__USAGE_VAR}_$(upper "${MODE_ALL}")" "${usage_body}"
 }
 _quote_mode()
@@ -133,7 +133,7 @@ __QUOTE_MODE_USAGE="mode"
 	test "${#}" -eq 1 || _subr_usage _quote_mode
 	local mode="${1}"
 	local MODE_QUOTE_CHAR="'"
-	echo -- "${MODE_QUOTE_CHAR}${mode}${MODE_QUOTE_CHAR}"
+	echo "${MODE_QUOTE_CHAR}${mode}${MODE_QUOTE_CHAR}"
 }
 _has_modes()
 {
@@ -167,7 +167,7 @@ get_mode()
 {
 _GET_MODE_USAGE=""
 	test "${#}" -eq 0 || _subr_usage get_mode
-	echo -- "${_MODE}"
+	echo "${_MODE}"
 }
 complete_mode_abbrev()
 {
@@ -182,7 +182,7 @@ __GET_HANDLE_MODE_FUNC_USAGE="mode"
 	test "${#}" -eq 1 || _subr_usage _get_handle_mode_func
 	local FUNC_PREFIX="handle_mode_"
 	local mode="${1}"
-	echo -- "${FUNC_PREFIX}${mode}"
+	echo "${FUNC_PREFIX}${mode}"
 }
 # -O	Don't try to handle opts.
 handle_mode_abbrev()
@@ -282,7 +282,7 @@ get_var()
 _GET_VAR_USAGE="var"
 	test "${#}" -eq 1 || _subr_usage get_var
 	local var="${1}"
-	eval echo -- "\"\$${var}\""
+	eval echo "\"\$${var}\""
 }
 
 # Set value of the variable named var.
@@ -332,7 +332,7 @@ _HAS_FUNC_USAGE="[-o] arg"
 		local res="${FLAG_CLEAR}"
 		# TODO: Add a func for converting exit code to a flag.
 		test "${ret}" -eq "0" && res="${FLAG_SET}"
-		echo -- "${res}"
+		echo "${res}"
 	else
 		return "${ret}"
 	fi
@@ -343,7 +343,7 @@ lower()
 {
 _LOWER_USAGE="arg ..."
 	test ${#} -ne 0 || _subr_usage lower
-	echo -- "${@}" |tr "[:upper:]" "[:lower:]"
+	echo "${@}" |tr "[:upper:]" "[:lower:]"
 }
 
 # Uppercase the arguments.
@@ -351,7 +351,7 @@ upper()
 {
 _UPPER_USAGE="arg ..."
 	test ${#} -ne 0 || _subr_usage upper
-	echo -- "${@}" |tr "[:lower:]" "[:upper:]"
+	echo "${@}" |tr "[:lower:]" "[:upper:]"
 }
 
 # Check if list contains a value.
@@ -380,9 +380,9 @@ _LINES_USAGE="str"
 	test ${#} -eq 1 || _subr_usage lines
 	local str="${1}"
 	if [ -n "${str}" ]; then
-		echo -- "${1}" |wc -l |sed "s/ //g"
+		echo "${1}" |wc -l |sed "s/ //g"
 	else
-		echo -- "0"
+		echo "0"
 	fi
 }
 
@@ -405,7 +405,7 @@ _PUSHTO_USAGE="[-s separator] var val"
 	test ${#} -eq 2 || _subr_usage pushto
 	local var="${1}"
 	local val="${2}"
-	local var_val=$(eval echo -- \"\$${var}\")
+	local var_val=$(eval echo \"\$${var}\")
 	if [ -z "${var_val}" ]; then
 		set_var "${var}" "${val}"
 	else
@@ -506,11 +506,11 @@ _COMPLETE_ABBREV_USAGE="[-s] abbrev variant ..."
 	local abbrev="${1}"
 	shift
 	local variants=$(split "${@}")
-	local matches=$(echo -- "${variants}" |grep -E "^${abbrev}")
+	local matches=$(echo "${variants}" |grep -E "^${abbrev}")
 	if [ "${strict}" = "1" ] && [ $(lines "${matches}") -ne 1 ]; then
 		return 1
 	fi
-	echo -- "${matches}"
+	echo "${matches}"
 }
 
 _HANDLE_OPTS_FUNC="handle_opts"
@@ -522,7 +522,7 @@ __GET_MODE_HANDLE_OPTS_FUNC_USAGE="mode"
 	if [ -n "${mode}" ] && ! check_mode "${MODE_ALL}"; then
 		pushto -s "_" func "${mode}"
 	fi
-	echo -- "${func}"
+	echo "${func}"
 }
 
 _OPTS_VAR="OPTS"
@@ -534,7 +534,7 @@ __GET_MODE_OPTS_VAR_NAME_USAGE="mode"
 	if [ -n "${mode}" ] && ! check_mode "${MODE_ALL}"; then
 		pushto -s "_" var_name $(upper "${mode}")
 	fi
-	echo -- "${var_name}"
+	echo "${var_name}"
 }
 
 # _handle_opts is_safe arg ...
@@ -592,7 +592,7 @@ _ESC_USAGE="where what"
 	local where="${1}"
 	local what="${2}"
 	test ${#} -eq 2 || _subr_usage esc
-	echo -- "${where}" |sed "s#${what}#\\&#g"
+	echo "${where}" |sed "s#${what}#\\&#g"
 }
 
 # Substitute pattern what with with in string where.
@@ -618,10 +618,11 @@ _SUB_USAGE="[-gn] where what with"
 	local print_func=""
 	if [ "${no_newline}" = "1" ]; then
 		print_func="printf"
+		local print_func_opts="--"
 	else
 		print_func="echo"
 	fi
-	"${print_func}" -- "${where}" |perl -0pe "s/${what}/${with}/${flags}"
+	"${print_func}" ${print_func_opts} "${where}" |perl -0pe "s/${what}/${with}/${flags}"
 }
 
 # Repeat string str times times.
@@ -633,7 +634,7 @@ _REPEAT_USAGE="str times"
 	test ${#} -eq 2 || _subr_usage repeat
 	local spaces=$(printf -- "%${times}s\n")
 	if [ "${str}" = " " ]; then
-		echo -- "${spaces}"
+		echo "${spaces}"
 	else
 		sub -g "${spaces}" " " "${str}"
 	fi
@@ -646,7 +647,7 @@ _GET_FILENAME_USAGE="file ..."
 	test ${#} -ne 0 || _subr_usage get_filename
 	local file=""
 	for file in ${@}; do
-		echo -- $(basename "${file}") |sed "s/\.[^\.]*//"
+		echo $(basename "${file}") |sed "s/\.[^\.]*//"
 	done
 }
 
@@ -657,7 +658,7 @@ _GET_EXT_USAGE="file ..."
 	test ${#} -ne 0 || _subr_usage get_ext
 	local file=""
 	for file in ${@}; do
-		echo -- $(basename "${file}") |sed "s/.*\.//"
+		echo $(basename "${file}") |sed "s/.*\.//"
 	done
 }
 
@@ -685,11 +686,11 @@ _TRY_EXT_USAGE="[-al] filepath ext ..."
 	for ext in ${@}; do
 		file="${filepath}.${ext}"
 		if [ "${list}" = "1" ]; then
-			echo -- "${file}"
+			echo "${file}"
 			continue
 		fi
 		check_file "${file}" || continue
-		echo -- "${file}"
+		echo "${file}"
 		test "${all}" = "1" || return 0
 	done
 }
@@ -775,7 +776,7 @@ _CHECK_DIR_USAGE="[-op] arg ..."
 			continue
 		fi
 		found=1
-		test "${or}" = "1" && test "${print}" = "1" && echo -- "${dir}"
+		test "${or}" = "1" && test "${print}" = "1" && echo "${dir}"
 	done
 	if [ "${print}" = "1" ]; then
 		return 0
@@ -824,7 +825,7 @@ _CHECK_FILE_USAGE="[-op] arg ..."
 			continue
 		fi
 		found=1
-		test "${or}" = "1" && test "${print}" = "1" && echo -- "${file}"
+		test "${or}" = "1" && test "${print}" = "1" && echo "${file}"
 	done
 	if [ "${print}" = "1" ]; then
 		return 0
@@ -880,7 +881,7 @@ _ENSURE_PROG_USAGE="[-e err_prefix] prog ..."
 	eval "${AFTER_OPTS_EVAL}"
 	test ${#} -gt 0 || _subr_usage ensure_prog
 	local missing=""
-	for prog in $(echo -- "${@}" |sort -u); do
+	for prog in $(echo "${@}" |sort -u); do
 		check_prog "${prog}" || pushto missing "${prog}"
 	done
 	test -z "${missing}" || err "${err_prefix}: $(flat "${missing}")"
@@ -904,7 +905,7 @@ _MATCH_FIRST_USAGE="-f func arg ..."
 	for arg in ${@}; do
 		if ${func} ${arg}; then
 			found=1
-			echo -- "${arg}"
+			echo "${arg}"
 			break
 		fi
 	done
