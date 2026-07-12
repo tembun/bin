@@ -10,7 +10,7 @@ MODE_DIFF="diff"
 define_usage -m "${MODE_DIFF}" "[-S] [-f fmt] [-u output_units] [date_1] [-f fmt] date_2"
 
 OUT_UNITS_DEFAULT="days"
-FMT_DEFAULT="%m-%d"
+INPUT_FMT_DEFAULT="%m-%d"
 
 OPTS_DIFF="Sf:u:"
 handle_opts_diff()
@@ -28,18 +28,18 @@ handle_mode_diff()
 	test "${#}" -gt 0 || usage
 	: ${Out_units:="${OUT_UNITS_DEFAULT}"}
 	if [ "${#}" -eq 1 ]; then
-		fmt1="${FMT_DEFAULT}"
+		fmt1="${INPUT_FMT_DEFAULT}"
 		date1=$(now "${fmt1}")
-		fmt2="${Fmt:-"${FMT_DEFAULT}"}"
+		fmt2="${Fmt:-"${INPUT_FMT_DEFAULT}"}"
 		date2="${1}"
 	else
 		date1="${1}"
-		fmt1="${Fmt:-"${FMT_DEFAULT}"}"
+		fmt1="${Fmt:-"${INPUT_FMT_DEFAULT}"}"
 		Fmt=""
 		shift
 		eval "${HANDLE_OPTS_EVAL}"
 		test "${#}" -gt 0 || usage
-			fmt2="${Fmt:-"${FMT_DEFAULT}"}"
+			fmt2="${Fmt:-"${INPUT_FMT_DEFAULT}"}"
 			date2="${1}"
 	fi
 	local sec1=$(date2epoch "${date1}" "${fmt1}")
