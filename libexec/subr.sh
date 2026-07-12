@@ -680,12 +680,13 @@ _TRY_EXT_USAGE="[-al] filepath ext ..."
 	done
 }
 
-# Get the current date in the strftime(3) format fmt.
+# Get the current date in the strftime(3) format fmt (or %s (Epoch) by default).
 now()
 {
-_NOW_USAGE="fmt"
-	test "${#}" -eq 1 || _subr_usage now
-	local fmt="${1}"
+_NOW_USAGE="[fmt]"
+	test "${#}" -le 1 || _subr_usage now
+	local FMT_DEFAULT="%s"
+	local fmt="${1:-"${FMT_DEFAULT}"}"
 	date "+${fmt}"
 }
 
