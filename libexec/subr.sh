@@ -464,6 +464,19 @@ _FLAT_USAGE="list ..."
 	join -s ", " "${@}"
 }
 
+# Get a character at index in value.
+char()
+{
+_CHAR_USAGE="index value"
+	test "${#}" -eq 2 || _subr_usage char
+	local idx="${1}"
+	local val="${2}"
+	test "${idx}" -ge 0 && test "${idx}" -lt $(len "${val}") ||
+	    _subr_err "char(): Index overflow (${idx}) for value: ${val}"
+	local pos=$((idx + 1))
+	printf -- "${val}" |cut -c "${pos}-${pos}"
+}
+
 FLAG_CLEAR="0"
 FLAG_SET="1"
 # Checks if arg is a set flag.
