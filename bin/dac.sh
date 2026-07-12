@@ -96,10 +96,13 @@ handle_mode_shift()
 		shift_input_abs=$(echo "${shift_input}" |cut -c 2-)
 	fi
 	test -n "${shift_input_abs}" || err "Wrong shift: ${shift_input}"
-	local shift_sec=$(units -t "${shift_input_abs} ${Shift_units}" "seconds")
-	test "${shift_sign}" = "-" && shift_sec=$((-shift_sec))
 	local input_sec=$(date2 "${Start_date}" "${Input_fmt}" "%s")
-	local dest_sec=$((input_sec + shift_sec))
+	local dest_sec="${input_sec}"
+	if [ "${shift_input_abs}" != "0" ]; then
+		local shift_sec=$(units -t "${shift_input_abs} ${Shift_units}" "seconds")
+		test "${shift_sign}" = "-" && shift_sec=$((-shift_sec))
+		dest_sec=$((input_sec + shift_sec))
+	fi
 	date2 "${dest_sec}" "%s" "${Out_fmt}"
 }
 
