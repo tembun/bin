@@ -457,7 +457,10 @@ FLAG_SET="1"
 # Checks if arg is a set flag.
 check_flag()
 {
-	test "${1}" = "${FLAG_SET}"
+_CHECK_FLAG_USAGE="flag"
+	test "${#}" -eq 1 || _subr_usage check_flag
+	local flag="${1}"
+	test "${flag}" = "${FLAG_SET}"
 }
 
 # Print possible abbreviation completions from variants.
