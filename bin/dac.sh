@@ -22,7 +22,6 @@ handle_opts_diff()
 	?)	usage ;;
 	esac
 }
-
 handle_mode_diff()
 {
 	local fmt1="" fmt2="" date1="" date2=""
