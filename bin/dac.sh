@@ -7,18 +7,18 @@
 . "$(dirname $(readlink -f "${0}"))/../libexec/subr.sh"
 
 MODE_DIFF="diff"
-define_usage -m "${MODE_DIFF}" "[-S] [-f fmt] [-t to] [date_1] [-f fmt] date_2"
+define_usage -m "${MODE_DIFF}" "[-S] [-f fmt] [-o output_units] [date_1] [-f fmt] date_2"
 
-TO_DEFAULT="days"
+OUT_UNITS_DEFAULT="days"
 FMT_DEFAULT="%m-%d"
 
-OPTS_DIFF="Sf:t:"
+OPTS_DIFF="Sf:u:"
 handle_opts_diff()
 {
 	case "${1}" in
 	S)	No_diff_sign=1 ;;
 	f)	Fmt="${OPTARG}" ;;
-	t)	To="${OPTARG}" ;;
+	u)	Out_units="${OPTARG}" ;;
 	?)	usage ;;
 	esac
 }
@@ -28,7 +28,7 @@ handle_mode_diff()
 	local fmt1="" fmt2="" date1="" date2=""
 	eval "${HANDLE_OPTS_EVAL}"
 	test "${#}" -gt 0 || usage
-	: ${To:="${TO_DEFAULT}"}
+	: ${Out_units:="${OUT_UNITS_DEFAULT}"}
 	if [ "${#}" -eq 1 ]; then
 		fmt1="${FMT_DEFAULT}"
 		date1=$(get_date "${fmt1}")
@@ -62,7 +62,7 @@ handle_mode_diff()
 	fi
 	test "${No_diff_sign}" = "1" && diff_sign=""
 	local diff_sec=$((sec_max - sec_min))
-	local diff_res=$(units -t "${diff_sec} seconds" "${To}")
+	local diff_res=$(units -t "${diff_sec} seconds" "${Out_units}")
 	echo "${diff_sign}${diff_res}"
 }
 
