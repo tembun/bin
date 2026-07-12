@@ -7,7 +7,7 @@
 . "$(dirname $(readlink -f "${0}"))/../libexec/subr.sh"
 
 MODE_DIFF="diff"
-define_usage -m "${MODE_DIFF}" "[-S] [-f fmt] [-o output_units] [date_1] [-f fmt] date_2"
+define_usage -m "${MODE_DIFF}" "[-S] [-f fmt] [-u output_units] [date_1] [-f fmt] date_2"
 
 OUT_UNITS_DEFAULT="days"
 FMT_DEFAULT="%m-%d"
