@@ -659,6 +659,37 @@ _TRY_EXT_USAGE="[-al] filepath ext ..."
 	done
 }
 
+# Get the current date in the strftime(3) format fmt.
+get_date()
+{
+_GET_DATE_USAGE="fmt"
+	test "${#}" -eq 1 || _subr_usage get_date
+	local fmt="${1}"
+	date "+${fmt}"
+}
+
+# Convert date from fmt_from to fmt_to.
+# fmt_{from,to} are strftime(3) formats.
+date2()
+{
+_DATE2_USAGE="date fmt_from fmt_to"
+	test "${#}" -eq 3 || _subr_usage date2
+	local date="${1}"
+	local fmt_from="${2}"
+	local fmt_to="${3}"
+	date -jf "${fmt_from}" "${date}" "+${fmt_to}"
+}
+
+# Convert date in the strftime(3) format fmt into Epoch time.
+date2epoch()
+{
+_DATE2EPOCH_USAGE="date fmt"
+	test "${#}" -eq 2 || _subr_usage date2epoch
+	local date="${1}"
+	local fmt="${2}"
+	date2 "${date}" "${fmt}" "%s"
+}
+
 ensure()
 {
 _ENSURE_USAGE="-e err_prefix -f func [-o] arg ..."

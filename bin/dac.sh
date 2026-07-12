@@ -23,19 +23,6 @@ handle_opts_diff()
 	esac
 }
 
-get_date()
-{
-	local fmt="${1}"
-	date "+${fmt}"
-}
-
-date2sec()
-{
-	local date="${1}"
-	local fmt="${2}"
-	date -jf "${fmt}" "${date}" "+%s"
-}
-
 handle_mode_diff()
 {
 	local fmt1="" fmt2="" date1="" date2=""
@@ -57,8 +44,8 @@ handle_mode_diff()
 			fmt2="${Fmt:-"${FMT_DEFAULT}"}"
 			date2="${1}"
 	fi
-	local sec1=$(date2sec "${date1}" "${fmt1}")
-	local sec2=$(date2sec "${date2}" "${fmt2}")
+	local sec1=$(date2epoch "${date1}" "${fmt1}")
+	local sec2=$(date2epoch "${date2}" "${fmt2}")
 	local sec_max="" sec_min="" diff_sign=""
 	if [ "${sec1}" -gt "${sec2}" ]; then
 		sec_max="${sec1}"
