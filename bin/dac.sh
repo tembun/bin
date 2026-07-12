@@ -25,7 +25,6 @@ handle_opts_diff()
 handle_mode_diff()
 {
 	local fmt1="" fmt2="" date1="" date2=""
-	eval "${HANDLE_OPTS_EVAL}"
 	test "${#}" -gt 0 || usage
 	: ${Out_units:="${OUT_UNITS_DEFAULT}"}
 	if [ "${#}" -eq 1 ]; then

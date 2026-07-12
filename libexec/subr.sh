@@ -184,9 +184,19 @@ __GET_HANDLE_MODE_FUNC_USAGE="mode"
 	local mode="${1}"
 	echo "${FUNC_PREFIX}${mode}"
 }
+# -O	Don't try to handle opts.
 handle_mode_abbrev()
 {
-_HANDLE_MODE_ABBREV_USAGE="abbrev [arg ...]"
+_HANDLE_MODE_ABBREV_USAGE="[-O] abbrev [arg ...]"
+	local o="" no_opts=""
+	eval "${BEFORE_OPTS_EVAL}"
+	while getopts "O" o; do
+		case "${o}" in
+		O)	no_opts=1 ;;
+		?)	_subr_usage handle_mode_abbrev ;;
+		esac
+	done
+	eval "${AFTER_OPTS_EVAL}"
 	test "${#}" -ge 1 || _subr_usage handle_mode_abbrev
 	local abbrev="${1}"
 	shift
@@ -195,6 +205,7 @@ _HANDLE_MODE_ABBREV_USAGE="abbrev [arg ...]"
 	local func=$(_get_handle_mode_func "${mode}")
 	has_func "${func}" || _subr_err "handle_mode_abbrev(): ${func}() is not defined"
 	set_mode "${mode}"
+	check_flag "${no_opts}" || eval "${_HANDLE_OPTS_SAFE_EVAL}"
 	"${func}" "${@}"
 }
 
@@ -512,14 +523,20 @@ __GET_MODE_OPTS_VAR_NAME_USAGE="mode"
 	echo "${var_name}"
 }
 
+# _handle_opts is_safe arg ...
 _handle_opts()
 {
+	local is_safe="${1}"
+	shift
 	local o=""
 	local opts_var_name=$(_get_mode_opts_var_name $(get_mode))
 	local opts_var_val=$(get_var "${opts_var_name}")
 	test -n "${opts_var_val}" || _subr_err "${opts_var_name} is not defined"
 	local handle_opts_func=$(_get_mode_handle_opts_func $(get_mode))
-	has_func "${handle_opts_func}" || _subr_err "${handle_opts_func}() is not defined"
+	if ! has_func "${handle_opts_func}"; then
+		check_flag "${is_safe}" || _subr_err "${handle_opts_func}() is not defined"
+		return 0
+	fi
 	eval "${BEFORE_OPTS_EVAL}"
 	while getopts "${opts_var_val}" o; do
 		"${handle_opts_func}" "${o}"
@@ -549,7 +566,8 @@ _handle_opts()
 # set binary flags in getopts().
 BEFORE_OPTS_EVAL='_OLD_OPTIND=${OPTIND}; OPTIND=1'
 AFTER_OPTS_EVAL='shift $((OPTIND - 1)); OPTIND="${_OLD_OPTIND}"'
-HANDLE_OPTS_EVAL='_handle_opts ${@}; eval ${AFTER_OPTS_EVAL}'
+HANDLE_OPTS_EVAL='_handle_opts 0 ${@}; eval ${AFTER_OPTS_EVAL}'
+_HANDLE_OPTS_SAFE_EVAL='_handle_opts 1 ${@}; eval ${AFTER_OPTS_EVAL}'
 
 # Escape character what in where.
 # TODO: make usage: '-c char ... where' and make '/' a default character to escape.
