@@ -473,8 +473,7 @@ _CHAR_USAGE="index value"
 	local val="${2}"
 	test "${idx}" -ge 0 && test "${idx}" -lt $(len "${val}") ||
 	    _subr_err "char(): Index overflow (${idx}) for value: ${val}"
-	local pos=$((idx + 1))
-	printf -- "${val}" |cut -c "${pos}-${pos}"
+	printf -- "${val}" |cut -c $((idx + 1))
 }
 
 FLAG_CLEAR="0"
