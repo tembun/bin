@@ -64,7 +64,8 @@ handle_mode_diff()
 	fi
 	test "${No_diff_sign}" = "1" && diff_sign=""
 	local diff_sec=$((sec_max - sec_min))
-	local diff_res=$(units -t "${diff_sec} seconds" "${Out_units}")
+	local diff_res="0"
+	test "${diff_sec}" -ne 0 && diff_res=$(units -t "${diff_sec} seconds" "${Out_units}")
 	echo "${diff_sign}${diff_res}"
 }
 
