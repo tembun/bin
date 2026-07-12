@@ -59,27 +59,27 @@ prompt()
 	warnx "${@}: "
 }
 
-USAGE_PROG_PREFIX="usage: "
+USAGE_PREFIX="usage: "
 _format_usage()
 {
 __FORMAT_USAGE_USAGE="[-p prefix] prog str"
-	local o="" prog="" str="" usage_body=""
-	local prog_prefix="${USAGE_PROG_PREFIX}"
+	local o=""
+	local usage_prefix="${USAGE_PREFIX}"
 	eval "${BEFORE_OPTS_EVAL}"
 	while getopts "p:" o; do
 		case "${o}" in
-		p)	prog_prefix="${OPTARG}" ;;
+		p)	usage_prefix="${OPTARG}" ;;
 		?)	_subr_usage _format_usage ;;
 		esac
 	done
 	eval "${AFTER_OPTS_EVAL}"
-	prog="${1}"
+	test "${#}" -ge 2 || _subr_usage _format_usage
+	local prog="${1}"
 	shift
-	str="${@}"
-	test -n "${str}" || _subr_usage _format_usage
-	usage_body=$(echo "${str}" |sed -e "s/^/${prog} /" \
-	    -e "2,\$s/^/$(repeat " " $(len "${prog_prefix}"))/")
-	echo "${prog_prefix}${usage_body}"
+	local str="${@}"
+	local usage_body=$(echo "${str}" |sed -e "s/^/${prog} /" \
+	    -e "2,\$s/^/$(repeat " " $(len "${usage_prefix}"))/")
+	echo "${usage_prefix}${usage_body}"
 }
 
 _subr_usage()
@@ -93,34 +93,238 @@ _USAGE_USAGE="subr_func_name"
 	func_usage_str=$(eval echo "\"\${${func_usage_var}}\"")
 	test -n "${func_usage_str}" ||
 	    _subr_err "_subr_usage: ${func_usage_var} is not defined"
-	# No need for a trailing space after USAGE_PROG_PREFIX, because it's
+	# No need for a trailing space after USAGE_PREFIX, because it's
 	# also included in this variable.
-	warnx "$(_format_usage -p "${_SUBR_PROGNAME}: ${USAGE_PROG_PREFIX}" \
+	warnx "$(_format_usage -p "${_SUBR_PROGNAME}: ${USAGE_PREFIX}" \
 	    "${func_name}" "${func_usage_str}")"
 	exit 2
 }
 
-# Creates a usage() that can be used afterwards.
-define_usage()
+MODE_ALL="__all"
+_RESERVED_MODES="${MODE_ALL}"
+_MODE_DEFAULT="${MODE_ALL}"
+_MODE="${_MODE_DEFAULT}"
+_CUSTOM_MODES=""
+get_all_modes()
 {
-_DEFINE_USAGE_USAGE="usage_str ..."
-	test ${#} -ne 0 || _subr_usage define_usage
-	_USAGE="${@}"
+_GET_ALL_MODES_USAGE=""
+	test "${#}" -eq 0 || _subr_usage get_all_modes
+	split "${_CUSTOM_MODES}"
+}
+# get_all_modes() (user defined modes) + _RESERVED_MODES
+_get_all_modes()
+{
+__GET_ALL_MODES_USAGE=""
+	test "${#}" -eq 0 || _subr_usage _get_all_modes
+	split "${_RESERVED_MODES} $(get_all_modes)"
+}
+_populate_mode_usage_all()
+{
+__POPULATE_MODE_USAGE_ALL_USAGE="mode usage_str ..."
+	test "${#}" -ge 2 || _subr_usage _populate_mode_usage_all
+	local mode="${1}"
+	shift
+	local usage_body=$(echo "${@}" |sed "s/^/$(_quote_mode "${mode}") /")
+	pushto "${__USAGE_VAR}_$(upper "${MODE_ALL}")" "${usage_body}"
+}
+_quote_mode()
+{
+__QUOTE_MODE_USAGE="mode"
+	test "${#}" -eq 1 || _subr_usage _quote_mode
+	local mode="${1}"
+	local MODE_QUOTE_CHAR="'"
+	echo "${MODE_QUOTE_CHAR}${mode}${MODE_QUOTE_CHAR}"
+}
+_has_modes()
+{
+__HAS_MODES_USAGE=""
+	test "${#}" -eq 0 || _subr_usage _has_modes
+	test -n "$(get_all_modes)"
+}
+validate_mode() {
+_VALIDATE_MODE_USAGE="mode"
+	test "${#}" -eq 1 || _subr_usage validate_mode
+	local mode="${1}"
+	contains "${mode}" $(_get_all_modes)
+}
+check_mode()
+{
+_CHECK_MODE_USAGE="mode"
+	test "${#}" -eq 1 || _subr_usage check_mode
+	local mode="${1}"
+	test $(get_mode) = "${mode}"
+}
+set_mode()
+{
+_SET_MODE_USAGE="mode"
+	test "${#}" -ne 0 || _subr_usage set_mode
+	local mode="${1}"
+	_has_modes || _subr_err "set_mode(): Allowed only after define_usage() with -m"
+	validate_mode "${mode}" || _subr_err "set_mode(): Undefined mode: ${mode}"
+	_MODE="${mode}"
+}
+get_mode()
+{
+_GET_MODE_USAGE=""
+	test "${#}" -eq 0 || _subr_usage get_mode
+	echo "${_MODE}"
+}
+complete_mode_abbrev()
+{
+_COMPLETE_MODE_ABBREV_USAGE="abbrev"
+	test "${#}" -eq 1 || _subr_usage complete_mode_abbrev
+	local abbrev="${1}"
+	complete_abbrev -s "${abbrev}" $(get_all_modes)
+}
+_get_handle_mode_func()
+{
+__GET_HANDLE_MODE_FUNC_USAGE="mode"
+	test "${#}" -eq 1 || _subr_usage _get_handle_mode_func
+	local FUNC_PREFIX="handle_mode_"
+	local mode="${1}"
+	echo "${FUNC_PREFIX}${mode}"
+}
+handle_mode_abbrev()
+{
+_HANDLE_MODE_ABBREV_USAGE="abbrev [arg ...]"
+	test "${#}" -ge 1 || _subr_usage handle_mode_abbrev
+	local abbrev="${1}"
+	shift
+	local mode=$(complete_mode_abbrev "${abbrev}")
+	test -n "${mode}" || usage
+	local func=$(_get_handle_mode_func "${mode}")
+	has_func "${func}" || _subr_err "handle_mode_abbrev(): ${func}() is not defined"
+	set_mode "${mode}"
+	"${func}" "${@}"
+}
+
 usage()
 {
-	warnx "$(_format_usage "${progname}" "${_USAGE}")"
+	_subr_err "usage() is not defined by define_usage()"
+}
+
+__USAGE_VAR="_USAGE"
+_DEFINED_USAGE_TYPE_MODELESS="MODELESS"
+_DEFINED_USAGE_TYPE_MODEFUL="MODEFUL"
+_FIRST_DEFINED_USAGE_TYPE=""
+
+# Creates a usage() that can be used afterwards.
+# -m	Define a usage for a mode.
+define_usage()
+{
+_DEFINE_USAGE_USAGE="[-m mode] usage_str"
+	local o="" mode=""
+	eval "${BEFORE_OPTS_EVAL}"
+	while getopts "m:" o; do
+		case "${o}" in
+		m)	mode="${OPTARG}" ;;
+		?)	_subr_usage define_usage ;;
+		esac
+	done
+	eval "${AFTER_OPTS_EVAL}"
+	test "${#}" -eq 1 || _subr_usage define_usage
+	local usage_str="${1}"
+	case "${_FIRST_DEFINED_USAGE_TYPE}" in
+	"${_DEFINED_USAGE_TYPE_MODELESS}")
+		_subr_err "define_usage(): Can be called only once when first called without -m"
+		;;
+	"${_DEFINED_USAGE_TYPE_MODEFUL}")
+		test -n "${mode}" ||
+		    _subr_err "define_usage(): All define_usage()s should be called with -m"
+		;;
+	esac
+	if [ -z "${mode}" ]; then
+		set_var "${__USAGE_VAR}" "${usage_str}"
+usage()
+{
+	warnx "$(_format_usage "${progname}" "$(get_var "${__USAGE_VAR}")")"
 	exit 2
 }
+		_FIRST_DEFINED_USAGE_TYPE="${_DEFINED_USAGE_TYPE_MODELESS}"
+	else
+		# If mode is valid, it means that we already defined a usage for
+		# it before.
+		! validate_mode "${mode}" ||
+		    _subr_err "define_usage(): Usage was already defined for mode: ${mode}"
+		pushto _CUSTOM_MODES "${mode}"
+		# TODO: Don't copy-paste upper when setting a usage variable
+		set_var "${__USAGE_VAR}_$(upper "${mode}")" "${usage_str}"
+		_populate_mode_usage_all "${mode}" "${usage_str}"
+		# Don't define usage() if already defined with -m earlier
+		has_func usage || return 0
+usage()
+{
+	local usage_var="${__USAGE_VAR}_$(upper $(get_mode))"
+	check_var "${usage_var}" || _subr_err "usage(): Usage is not defined for a mode: $(get_mode)"
+	local usage_progname="${progname}"
+	! check_mode "${MODE_ALL}" && pushto -s " " usage_progname $(_quote_mode $(get_mode))
+	warnx "$(_format_usage "${usage_progname}" "$(get_var "${usage_var}")")"
+	exit 2
+}
+		_FIRST_DEFINED_USAGE_TYPE="${_DEFINED_USAGE_TYPE_MODEFUL}"
+	fi
+}
+
+# Get value of the variable named var.
+get_var()
+{
+_GET_VAR_USAGE="var"
+	test "${#}" -eq 1 || _subr_usage get_var
+	local var="${1}"
+	eval echo "\"\$${var}\""
+}
+
+# Set value of the variable named var.
+# TODO: make use of it in subr.sh functions.
+set_var()
+{
+_SET_VAR_USAGE="var value"
+	test "${#}" -eq 2 || _subr_usage set_var
+	local var="${1}"
+	local value="${2}"
+	eval "${var}=\"${value}\""
+}
+
+# Check if variable var is set to a non-empty value.
+check_var()
+{
+_CHECK_VAR_USAGE="var"
+	test "${#}" -eq 1 || _subr_usage check_var
+	local var="${1}"
+	test -n "$(get_var "${var}")"
 }
 
 # Checks if arg is a shell function.
+# -o	Instead of returning an exit code, echo the boolean flag (FLAG_*).
 has_func()
 {
-_CHECK_FUNC_USAGE="arg"
-	test ${#} -eq 1 || _subr_usage has_func
+_HAS_FUNC_USAGE="[-o] arg"
+	local o="" output=""
+	eval "${BEFORE_OPTS_EVAL}"
+	while getopts "o" o; do
+		case "${o}" in
+		o)	output=1 ;;
+		?)	_subr_usage has_func ;;
+		esac
+	done
+	eval "${AFTER_OPTS_EVAL}"
+	test "${#}" -eq 1 || _subr_usage has_func
 	local arg="${1}"
-	test -n "${arg}" || return 1
-	type "${arg}" 2>/dev/null |grep -q "function"
+	local ret=""
+	if [ -z "${arg}" ]; then
+		ret="1"
+	else
+		type "${arg}" 2>/dev/null |grep -q "function"
+		ret="${?}"
+	fi
+	if [ "${output}" = "1" ]; then
+		local res="${FLAG_CLEAR}"
+		# TODO: Add a func for converting exit code to a flag.
+		test "${ret}" -eq "0" && res="${FLAG_SET}"
+		echo "${res}"
+	else
+		return "${ret}"
+	fi
 }
 
 # Lowercase the arguments.
@@ -162,7 +366,12 @@ lines()
 {
 _LINES_USAGE="str"
 	test ${#} -eq 1 || _subr_usage lines
-	echo "${1}" |wc -l |sed "s/ //g"
+	local str="${1}"
+	if [ -n "${str}" ]; then
+		echo "${1}" |wc -l |sed "s/ //g"
+	else
+		echo "0"
+	fi
 }
 
 # Add value in the end of the variable named var.
@@ -186,9 +395,9 @@ _PUSHTO_USAGE="[-s separator] var val"
 	local val="${2}"
 	local var_val=$(eval echo \"\$${var}\")
 	if [ -z "${var_val}" ]; then
-		eval "${var}=\${val}"
+		set_var "${var}" "${val}"
 	else
-		eval "${var}=\$(printf '${var_val}${separator}${val}')"
+		set_var "${var}" "$(printf "${var_val}${separator}${val}")"
 	fi
 }
 
@@ -213,7 +422,8 @@ _SPLIT_USAGE="[-s separator] str"
 	done
 	eval "${AFTER_OPTS_EVAL}"
 	test ${#} -ne 0 || _subr_usage split
-	sub -g "${@}" "${sep}" "\n"
+	local args="${@}"
+	sub -g "${args}" "${sep}" "\n"
 }
 
 join()
@@ -267,7 +477,7 @@ _COMPLETE_ABBREV_USAGE="[-s] abbrev variant ..."
 	test "${#}" -ge 2 || _subr_usage complete_abbrev
 	local abbrev="${1}"
 	shift
-	local variants=$(sub -g "${@}" " " "\n")
+	local variants=$(split "${@}")
 	local matches=$(echo "${variants}" |grep -E "^${abbrev}")
 	if [ "${strict}" = "1" ] && [ $(lines "${matches}") -ne 1 ]; then
 		return 1
@@ -275,24 +485,41 @@ _COMPLETE_ABBREV_USAGE="[-s] abbrev variant ..."
 	echo "${matches}"
 }
 
-_ensure_handle_opts()
+_HANDLE_OPTS_FUNC="handle_opts"
+_get_mode_handle_opts_func()
 {
-	has_func handle_opts || _subr_err "handle_opts() is not defined"
+__GET_MODE_HANDLE_OPTS_FUNC_USAGE="mode"
+	test "${#}" -eq 1 || _subr_usage _get_mode_handle_opts_func
+	local func="${_HANDLE_OPTS_FUNC}"
+	if [ -n "${mode}" ] && ! check_mode "${MODE_ALL}"; then
+		pushto -s "_" func "${mode}"
+	fi
+	echo "${func}"
 }
 
-_ensure_opts_var()
+_OPTS_VAR="OPTS"
+_get_mode_opts_var_name()
 {
-	test -n "${OPTS}" || _subr_err "OPTS is not defined"
+__GET_MODE_OPTS_VAR_NAME_USAGE="mode"
+	test "${#}" -eq 1 || _subr_usage _get_mode_opts_var_name
+	local var_name="${_OPTS_VAR}"
+	if [ -n "${mode}" ] && ! check_mode "${MODE_ALL}"; then
+		pushto -s "_" var_name $(upper "${mode}")
+	fi
+	echo "${var_name}"
 }
 
 _handle_opts()
 {
 	local o=""
-	_ensure_opts_var
-	_ensure_handle_opts
+	local opts_var_name=$(_get_mode_opts_var_name $(get_mode))
+	local opts_var_val=$(get_var "${opts_var_name}")
+	test -n "${opts_var_val}" || _subr_err "${opts_var_name} is not defined"
+	local handle_opts_func=$(_get_mode_handle_opts_func $(get_mode))
+	has_func "${handle_opts_func}" || _subr_err "${handle_opts_func}() is not defined"
 	eval "${BEFORE_OPTS_EVAL}"
-	while getopts "${OPTS}" o; do
-		handle_opts "${o}"
+	while getopts "${opts_var}" o; do
+		"${handle_opts_func}" "${o}"
 	done
 }
 
@@ -338,8 +565,7 @@ _ESC_USAGE="where what"
 sub()
 {
 _SUB_USAGE="[-gn] where what with"
-	local o="" where="" what="" with="" g_flag="" no_newline="" flags="" \
-	    print_func=""
+	local o="" g_flag="" no_newline="" flags=""
 	eval "${BEFORE_OPTS_EVAL}"
 	while getopts "gn" o; do
 		case "${o}" in
@@ -350,10 +576,11 @@ _SUB_USAGE="[-gn] where what with"
 	done
 	eval "${AFTER_OPTS_EVAL}"
 	test ${#} -eq 3 || _subr_usage sub
-	where="${1}"
-	what=$(esc "${2}" "/")
-	with=$(esc "${3}" "/")
+	local where="${1}"
+	local what=$(esc "${2}" "/")
+	local with=$(esc "${3}" "/")
 	check_flag "${g_flag}" && flags="g"
+	local print_func=""
 	if [ "${no_newline}" = "1" ]; then
 		print_func="printf"
 	else
