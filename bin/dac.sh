@@ -29,7 +29,7 @@ handle_mode_diff()
 	: ${Out_units:="${OUT_UNITS_DEFAULT}"}
 	if [ "${#}" -eq 1 ]; then
 		fmt1="${FMT_DEFAULT}"
-		date1=$(get_date "${fmt1}")
+		date1=$(now "${fmt1}")
 		fmt2="${Fmt:-"${FMT_DEFAULT}"}"
 		date2="${1}"
 	else

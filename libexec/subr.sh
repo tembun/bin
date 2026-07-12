@@ -681,10 +681,10 @@ _TRY_EXT_USAGE="[-al] filepath ext ..."
 }
 
 # Get the current date in the strftime(3) format fmt.
-get_date()
+now()
 {
-_GET_DATE_USAGE="fmt"
-	test "${#}" -eq 1 || _subr_usage get_date
+_NOW_USAGE="fmt"
+	test "${#}" -eq 1 || _subr_usage now
 	local fmt="${1}"
 	date "+${fmt}"
 }
