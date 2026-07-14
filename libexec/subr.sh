@@ -219,6 +219,7 @@ _DEFINED_USAGE_TYPE_MODELESS="MODELESS"
 _DEFINED_USAGE_TYPE_MODEFUL="MODEFUL"
 _FIRST_DEFINED_USAGE_TYPE=""
 
+_COMMON_MODES_USAGE_PREFIX_VAR="COMMON_MODES_USAGE_PREFIX"
 # Creates a usage() that can be used afterwards.
 # -m	Define a usage for a mode.
 define_usage()
@@ -269,7 +270,8 @@ usage()
 	check_var "${usage_var}" || _subr_err "usage(): Usage is not defined for a mode: $(get_mode)"
 	local usage_progname="${progname}"
 	! check_mode "${MODE_ALL}" && pushto -s " " usage_progname $(_quote_mode $(get_mode))
-	warnx "$(_format_usage "${usage_progname}" "$(get_var "${usage_var}")")"
+	warnx "$(_format_usage "${usage_progname}" \
+	    "$(get_var "${_COMMON_MODES_USAGE_PREFIX_VAR}") $(get_var "${usage_var}")")"
 	exit 2
 }
 		_FIRST_DEFINED_USAGE_TYPE="${_DEFINED_USAGE_TYPE_MODEFUL}"
