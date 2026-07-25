@@ -41,6 +41,7 @@ MAN_MODE= 0644
 MANCOMPRESS= gzip -cn
 SHAREDIR= share
 SHARE_MODE= 0444
+# XXX install(1) is not POSIX
 INSTALL= install
 INSTALL_LINK_OPT= -l h
 INSTALL_MODE_OPT= -m
