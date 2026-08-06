@@ -116,7 +116,7 @@ write_entry_path()
 		read pass
 	fi
 	mkdir -p $(dirname "$entry_path")
-	printf "$pass" >"$entry_path"
+	printf $(echo "${pass}" |sed 's/%/&&/g') >"${entry_path}"
 }
 
 handle_addedit_mode()
