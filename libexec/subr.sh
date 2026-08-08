@@ -5,6 +5,7 @@
 # . "$(dirname $(readlink -f "${0}"))/../libexec/subr.sh"
 #
 
+# TODO: get rid of it
 set -e
 
 progname=$(basename -- "${0}" ".sh")
