@@ -4,67 +4,34 @@
 # yt2 -- download and convert files from YouTube.
 #
 
-progname=$(basename -- "${0}" .sh)
-SETFIB="setfib"
+. "$(dirname $(readlink -f "${0}"))/../libexec/subr.sh"
+
 YTDLP="yt-dlp"
+COOKIES_BROWSER="firefox"
+PROXY="127.0.0.1"
+PROXY_PORT="10808"
 
-usage()
-{
-	echo "usage: ${progname} [-F] [-f fib] [-o output_name] [-t format] URL" 1>&2
-	exit 2
-}
+define_usage "[-CP] [-o output_name] [-t format] URL"
 
-err()
-{
-	echo "${progname}: ${@}" 1>&2
-	exit 1
-}
-
-ensure_prog()
-{
-	local prog="${1}"
-	local path=$(which "${prog}" 2>/dev/null)
-	test -n "${path}" && test -x "${path}" || err "You need ${prog} to run this"
-}
-
-check_fib()
-{
-	netstat -rF "${1}" >/dev/null 2>&1
-}
-
-run_setfib()
-{
-	fib="${1}"
-	shift
-	${SETFIB} -F "${fib}" "${@}"
-}
-
+OPTS="CPo:t:"
 handle_opts()
 {
-	local o
-	while getopts "Ff:o:t:" o; do
-		case "${o}" in
-		F)	nofib="1" ;;
-		f)	fib="${OPTARG}" ;;
-		o)	output="${OPTARG}" ;;
-		t)	target="${OPTARG}" ;;
-		?)	usage ;;
-		esac
-	done
+	case "${o}" in
+	C)	set_flag no_cookies ;;
+	P)	set_flag no_proxy ;;
+	o)	output="${OPTARG}" ;;
+	t)	target="${OPTARG}" ;;
+	?)	usage ;;
+	esac
 }
 
 ensure_prog "${YTDLP}"
-handle_opts ${@}
-shift $((OPTIND - 1))
-test ${#} -ne 1 && usage
+eval "${HANDLE_OPTS_EVAL}"
+test "${#}" -eq 1 || usage
 url="${1}"
-: ${fib:="1"}
-test -n "${output}" && out_opt="-o ${output}"
-test -n "${target}" && target_opt="-t ${target}"
-cmd="${YTDLP} ${target_opt} ${out_opt} ${url}"
-if [ "${nofib}" != "1" ] && check_fib "${fib}"; then
-	ensure_prog "${SETFIB}"
-	run_setfib "${fib}" ${cmd}
-else
-	${cmd}
-fi
+test -z "${output}" || out_opt="-o ${output}"
+test -z "${target}" || target_opt="-t ${target}"
+check_flag "${no_proxy}" || proxy_opt="--proxy socks5://${PROXY}:${PROXY_PORT}"
+check_flag "${no_cookies}" || cookies_opt="--cookies-from-browser ${COOKIES_BROWSER}"
+extra_opts="${proxy_opt} ${cookies_opt} ${target_opt} ${out_opt}"
+"${YTDLP}" ${extra_opts} "${url}"
