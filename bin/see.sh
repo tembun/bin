@@ -8,6 +8,7 @@
 
 PLAYER="mpv"
 PLAYER_SUB_FILE_OPT="--sub-file"
+PLAYER_NO_SUBS_BY_DEFAULT_OPT="--no-sub-visibility"
 SUB_EXT="srt"
 SUB_SUFFIX=".${SUB_EXT}"
 MOVIE_DIRS_DEFAULT="${HOME}/flm ${HOME}/tmp"
@@ -63,6 +64,7 @@ if ! check_file "${file}"; then
 	fi
 fi
 sub_file="$(dirname "${file}")/$(get_filename "${file}")${SUB_SUFFIX}"
+pushto player_opts "${PLAYER_NO_SUBS_BY_DEFAULT_OPT}"
 check_file "${sub_file}" && pushto player_opts "${PLAYER_SUB_FILE_OPT}=${sub_file}"
 ensure_prog "${PLAYER}"
 "${PLAYER}" ${player_opts} "${file}"
