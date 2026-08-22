@@ -879,7 +879,7 @@ _ENSURE_DIR_USAGE="[-o] path ..."
 	eval "${AFTER_OPTS_EVAL}"
 	test ${#} -ne 0 || _subr_usage ensure_dir
 	test "${or}" = "1" && appendto ensure_opts "-o"
-	ensure -f check_dir -e "Directories not found" ${ensure_opts} ${@}
+	ensure -f check_dir -e "Directories not found" ${ensure_opts} "${@}"
 }
 
 check_file()
