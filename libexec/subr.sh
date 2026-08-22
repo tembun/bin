@@ -341,6 +341,69 @@ _HAS_FUNC_USAGE="[-o] arg"
 	fi
 }
 
+mkdir_sure()
+{
+_MKDIR_SURE_USAGE="[-r] dir ..."
+	local o="" root=""
+	eval "${BEFORE_OPTS_EVAL}"
+	while getopts "r" o; do
+		case "${o}" in
+		r)	set_flag root ;;
+		?)	_subr_usage mkdir_sure ;;
+		esac
+	done
+	eval "${AFTER_OPTS_EVAL}"
+	test "${#}" -ne 0 || _subr_usage mkdir_sure
+	local wrapper_func=""
+	check_flag "${root}" && wrapper_func="do_root"
+	${wrapper_func} mkdir -p ${@} || err "Cannot mkdir: ${@}"
+}
+
+mkfiledir_sure()
+{
+_MKFILEDIR_SURE_USAGE="[-r] file ..."
+	local o="" root="" mkdir_sure_opts=""
+	eval "${BEFORE_OPTS_EVAL}"
+	while getopts "r" o; do
+		case "${o}" in
+		r)	set_flag root ;;
+		?)	_subr_usage mkfiledir_sure ;;
+	esac
+	done
+	eval "${AFTER_OPTS_EVAL}"
+	test "${#}" -ne 0 || _subr_usage mkfiledir_sure
+	check_flag "${root}" && pushto mkdir_sure_opts "-r"
+	local dirs=$(echo "${@}" |xargs dirname)
+	mkdir_sure ${mkdir_sure_opts} "${dirs}"
+}
+
+write_file_sure()
+{
+_WRITE_FILE_SURE_USAGE="[-r] path content ..."
+	local o="" root=""
+	eval "${BEFORE_OPTS_EVAL}"
+	while getopts "r" o; do
+		case "${o}" in
+		r)	set_flag root ;;
+		?)	_subr_usage write_file_sure ;;
+		esac
+	done
+	eval "${AFTER_OPTS_EVAL}"
+	test "${#}" -ge 2 || _subr_usage write_file_sure
+	local path="${1}"
+	shift
+	local wrapper_func=""
+	local mkdir_sure_opts=""
+	if check_flag "${root}"; then
+		wrapper_func="do_root"
+		mkdir_sure_opts="-r"
+	fi
+	mkdir_sure ${mkdir_sure_opts} $(dirname "${path}")
+	echo "${@}" |${wrapper_func} tee "${path}" >/dev/null ||
+	    "Cannot write file: ${path}"
+
+}
+
 # Lowercase the arguments.
 lower()
 {
