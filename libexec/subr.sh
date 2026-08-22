@@ -963,6 +963,9 @@ _ENSURE_PROG_USAGE="[-e err_prefix] prog ..."
 	test ${#} -gt 0 || _subr_usage ensure_prog
 	local missing=""
 	for prog in $(echo "${@}" |sort -u); do
+		# We can skip checking for any DO_ROOT_* program if we're
+		# already root.
+		contains "${prog}" "${DO_ROOT_PROGS}" && check_root && continue
 		check_prog "${prog}" || pushto missing "${prog}"
 	done
 	test -z "${missing}" || err "${err_prefix}: $(flat "${missing}")"
