@@ -481,7 +481,20 @@ _CHAR_USAGE="index value"
 
 FLAG_CLEAR="0"
 FLAG_SET="1"
-# Checks if arg is a set flag.
+set_flag()
+{
+_SET_FLAG_USAGE="var"
+	test "${#}" -eq 1 || _subr_usage set_flag
+	local var="${1}"
+	set_var "${var}" "${FLAG_SET}"
+}
+clear_flag()
+{
+_CLEAR_FLAG_USAGE="var"
+	test "${#}" -eq 1 || _subr_usage clear_flag
+	local var="${1}"
+	set_var "${var}" "${FLAG_CLEAR}"
+}
 check_flag()
 {
 _CHECK_FLAG_USAGE="flag"
