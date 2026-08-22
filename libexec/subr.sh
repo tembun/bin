@@ -810,7 +810,7 @@ _ENSURE_DIR_USAGE="[-o] path ..."
 	while getopts "o" o; do
 		case "${o}" in
 		o)	or=1 ;;
-		?)	_subr_usage ensure_dir
+		?)	_subr_usage ensure_dir ;;
 		esac
 	done
 	eval "${AFTER_OPTS_EVAL}"
@@ -862,7 +862,7 @@ _ENSURE_FILE_USAGE="[-o] path ...]"
 	while getopts "o" o; do
 		case "${o}" in
 		o)	or=1 ;;
-		?)	_subr_usage ensure_file
+		?)	_subr_usage ensure_file ;;
 		esac
 	done
 	eval "${AFTER_OPTS_EVAL}"
