@@ -623,7 +623,10 @@ _handle_opts()
 	local o=""
 	local opts_var_name=$(_get_mode_opts_var_name $(get_mode))
 	local opts_var_val=$(get_var "${opts_var_name}")
-	test -n "${opts_var_val}" || _subr_err "${opts_var_name} is not defined"
+	if [ -z "${opts_var_val}" ]; then
+		check_flag "${is_safe}" || _subr_err "${opts_var_name} is not defined"
+		return 0
+	fi
 	local handle_opts_func=$(_get_mode_handle_opts_func $(get_mode))
 	if ! has_func "${handle_opts_func}"; then
 		check_flag "${is_safe}" || _subr_err "${handle_opts_func}() is not defined"
