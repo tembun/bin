@@ -420,7 +420,7 @@ appendto()
 {
 _APPENDTO_USAGE="var val"
 	test ${#} -eq 2 || _subr_usage appendto
-	pushto -s " " ${@}
+	pushto -s " " "${@}"
 }
 
 split()
