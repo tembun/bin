@@ -914,6 +914,13 @@ _MATCH_FIRST_USAGE="-f func arg ..."
 	test "${found}" = "1"
 }
 
+ROOT="root"
+check_root()
+{
+_CHECK_ROOT_USAGE=""
+	test "${#}" -eq 0 || _subr_usage check_root
+	test $(whoami) = "${ROOT}"
+}
 DO_ROOT_MDO="mdo"
 DO_ROOT_DOAS="doas"
 DO_ROOT_SUDO="sudo"
@@ -926,7 +933,10 @@ do_root()
 {
 _DO_ROOT_USAGE="arg ..."
 	test ${#} -gt 0 || _subr_usage do_root
-	${DO_ROOT} ${@}
+	local wrapper_func="${DO_ROOT}"
+	# If we're already root, we can execute commands as is.
+	check_root && wrapper_func=""
+	${wrapper_func} ${@}
 }
 
 check_kld()
