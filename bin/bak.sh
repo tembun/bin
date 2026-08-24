@@ -21,8 +21,6 @@
 #     <\t><\t>		'xz' (default) | 'none'
 #     <\t>	root:			(Optional)
 #     <\t><\t>		1
-#     <\t>	dump_ports_to:		(Optional, FreeBSD only)
-#     <\t><\t>		/ports.list
 #     <\n>
 #     <strategy-name-2>:
 #     ...
@@ -52,10 +50,6 @@
 #
 # `root' is a flag which should be set to `1', if making a backup with this
 # strategy requires root privileges.  By default it's `0'.
-#
-# `dump_ports_to' is FreeBSD-only and names the file where list of installed
-# ports(7) will be dumped to.  This file will be included in the backup and will
-# be removed after the backup is done.
 #
 # Optionally, a `exclude_all' global section may be specified.  It lists the
 # files that will be excluded from backup (see `exclude' section) for every
@@ -99,7 +93,7 @@ err()
 usage()
 {
 	# Use printf(1) instead of echo(1) to suppress trailing newline.
-	local strats_split=$(printf "$strats" |perl -0pe 's/\n/ | /g')	
+	local strats_split=$(printf "$strats" |perl -0pe 's/\n/ | /g')
 	cat 1>&2 <<__EOF__
 Usage: $progname [-c] $strats_split
        $progname -C
@@ -144,7 +138,6 @@ STRAT_PROP_COMPRESS_NONE="none"
 STRAT_PROP_COMPRESS_DEFAULT="${STRAT_PROP_COMPRESS_XZ}"
 STRAT_PROP_OUT="out"
 STRAT_PROP_ROOT="root"
-STRAT_PROP_DUMP_PORTS="dump_ports_to"
 VAR_HOME="HOME"
 VAR_OUT_DATE="DATE"
 
@@ -224,19 +217,6 @@ get_strat_cfg_prop()
 	fi
 }
 
-# get_dump_ports_to strat_cfg
-get_dump_ports_to()
-{
-	local strat_cfg="$1"
-	local prop="$STRAT_PROP_DUMP_PORTS"
-	local val
-	if ! check_freebsd && check_strat_cfg_prop "$strat_cfg" "$prop"; then
-		warn "Strategy property '$prop' is only allowed in FreeBSD"
-		return
-	fi
-	get_strat_cfg_prop "$strat_cfg" "$prop" 0
-}
-
 # get_strat_cfg_out_raw strat_cfg
 get_strat_cfg_out_raw()
 {
@@ -267,14 +247,10 @@ get_strat_cfg_out()
 	fi
 }
 
-# get_include_files include_strat dump_ports_to
+# get_include_files include_strat
 get_include_files()
 {
-	if [ -n "$dump_ports_to" ]; then
-		printf "${include_strat}\n${dump_ports_to}" |sort -u
-	else
-		echo "$include_strat" |sort -u
-	fi
+	echo "$include_strat" |sort -u
 }
 
 # get_exclude_files cfg strat_cfg
@@ -331,14 +307,6 @@ tar_format_compress()
 }
 
 #=============== Main ===============
-# dump_ports to
-dump_ports()
-{
-	local to="$1"
-	pkg prime-origins >"$to" ||
-	    err "Can't dump ports list to $to"
-}
-
 # validate_root_prop strat root
 validate_root_prop()
 {
@@ -365,14 +333,8 @@ do_bak()
 	time tar ${exclude_cmd} ${compress_cmd} -cvf "${out}" ${include_cmd}
 }
 
-cleanup_dumped_port_list()
-{
-	[ -n "$dump_ports_to" ] && rm -f "$dump_ports_to"
-}
-
 abort_handler() {
 	rm -f "$out"
-	cleanup_dumped_port_list
 }
 trap abort_handler INT TERM
 
@@ -408,13 +370,12 @@ strat="$1"
 contains "$strat" "$strats" || usage
 strat_cfg=$(get_strat_cfg "$cfg" "$strat") ||
     err "Configuration for strategy '$strat' is empty"
-dump_ports_to=$(get_dump_ports_to "$strat_cfg")
 include_strat=$(get_strat_cfg_prop "$strat_cfg" "$STRAT_PROP_INCLUDE" 1) ||
     err "Strategy property '$STRAT_PROP_INCLUDE' is required"
 
 [ $show_strat_cfg -eq 1 ] && { echo "$strat_cfg"; exit 0; }
 
-include_files=$(get_include_files "$include_strat" "$dump_ports_to")
+include_files=$(get_include_files "$include_strat")
 include_cmd=$(tar_format_include_options "$include_files")
 exclude_files=$(get_exclude_files "$cfg" "$strat_cfg")
 exclude_cmd=$(tar_format_exclude_options "$exclude_files")
@@ -426,8 +387,6 @@ compress=$(get_compress "${cfg}" "${strat_cfg}")
 validate_compress "${compress}"
 compress_cmd=$(tar_format_compress "${compress}")
 
-[ -n "$dump_ports_to" ] && dump_ports "$dump_ports_to"
 do_bak "${out}" "${include_cmd}" "${exclude_cmd}" "${compress_cmd}" ||
-    { cleanup_dumped_port_list; err "Error during backup"; }
+    err "Error during backup"
 echo "$out"
-cleanup_dumped_port_list
