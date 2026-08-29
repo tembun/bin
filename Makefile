@@ -1,8 +1,13 @@
-#
-# make			Build everything.
-# make bin/brio		Build a particular binary.
-# make clean		Clean everything.
+# make			Install everything.
+# make bin		Install all binaries.
+# make bin/brio		Install a particular binary.
+# make libexec		Install all libraries.
+# make libexec/subr	Install a particular library.
+# make clean		Clean everything installed.
+# make clean/bin	Clean all installed binaries.
 # make clean/bin/brio	Clean a particular installed binary.
+# make clean/libexec	Clean all installed libraries.
+# make clean/libexec/subr	Clean a particular installed library.
 #
 # All final scripts should be located in bin/, libraries (like commonly used
 # subroutines for shell scripts) should be located in libexec/.
@@ -24,7 +29,6 @@
 # Note: if a nested makefile wants to use a path, relative to its own location
 # (i.e. a nested directory itself), it should set and further use a variable:
 #     PARSEDIR= ${.PARSEDIR:tA}
-#
 
 LIBEXEC_SRC_DIR= libexec
 LIBEXEC_SRCS:sh = find ${LIBEXEC_SRC_DIR} -type f
@@ -41,12 +45,15 @@ MANCOMPRESS= gzip -cn
 SHAREDIR= share
 SHARE_MODE= 0444
 
-CLEAN_TARGET_PREFIX=clean/
-
 LINKS_ren= normalize
 LINKS_src= dsrc ksrc lsrc
 
-all: ${LIBEXEC_SRC_DIR} ${BIN_SRC_DIR}
+LIBEXEC_TARGET=${LIBEXEC_SRC_DIR}
+BIN_TARGET=${BIN_SRC_DIR}
+CLEAN_TARGET=clean
+CLEAN_TARGET_PREFIX=${CLEAN_TARGET}/
+
+all: ${LIBEXEC_TARGET} ${BIN_TARGET}
 
 .for libexec_src in ${LIBEXEC_SRCS}
 libexec_target=${PREFIX}/${libexec_src:C/${LIBEXEC_SRC_DIR}/${LIBEXECDIR}/}
@@ -54,14 +61,26 @@ ${libexec_target}: ${libexec_src}
 	@mkdir -p ${.TARGET:H}
 	cp ${.ALLSRC} ${.TARGET}
 	chmod ${LIBEXEC_MODE} ${.TARGET}
-
 libexec_target_handle=${libexec_src:R}
 .PHONY: ${libexec_target_handle}
 ${libexec_target_handle}: ${libexec_target}
+
+libexec_clean_target=${CLEAN_TARGET_PREFIX}${libexec_target}
+.PHONY: ${libexec_clean_target}
+${libexec_clean_target}:
+	rm -f ${.TARGET:C/^${CLEAN_TARGET_PREFIX}//}
+	@rmdir -p ${.TARGET:H:C/^${CLEAN_TARGET_PREFIX}//} 2>/dev/null || true
+libexec_clean_target_handle=${CLEAN_TARGET_PREFIX}${libexec_target_handle}
+.PHONY: ${libexec_clean_target_handle}
+${libexec_clean_target_handle}: ${libexec_clean_target}
 .endfor
 libexec_targets=${LIBEXEC_SRCS:R}
-.PHONY: ${LIBEXEC_SRC_DIR}
-${LIBEXEC_SRC_DIR}: ${libexec_targets}
+.PHONY: ${LIBEXEC_TARGET}
+${LIBEXEC_TARGET}: ${libexec_targets}
+libexec_dir_clean_target_handle=${CLEAN_TARGET_PREFIX}${LIBEXEC_TARGET}
+libexec_clean_targets=${libexec_targets:C/^/${CLEAN_TARGET_PREFIX}/}
+.PHONY: ${libexec_dir_clean_target_handle}
+${libexec_dir_clean_target_handle}: ${libexec_clean_targets}
 
 .for src in ${BIN_SRCS}
 src_file=${src}
@@ -78,22 +97,22 @@ ${main_target}: ${src_file}
 	chmod ${BIN_MODE} ${.TARGET}
 clean_main_target=${CLEAN_TARGET_PREFIX}${main_target}
 ${clean_main_target}:
-	rm -f ${.TARGET:C/^clean\///}
-	@rmdir -p ${.TARGET:H:C/^clean\///} 2>/dev/null || true
+	rm -f ${.TARGET:C/^${CLEAN_TARGET_PREFIX}//}
+	@rmdir -p ${.TARGET:H:C/^${CLEAN_TARGET_PREFIX}//} 2>/dev/null || true
 
 link_targets=
 clean_link_targets=
 .if defined(LINKS_${src_base})
 link_targets=${LINKS_${src_base}:C/^/${PREFIX}\/${BINDIR}\//}
-clean_link_targets=${link_targets:C/^/clean\//}
+clean_link_targets=${link_targets:C/^/${CLEAN_TARGET_PREFIX}/}
 .for link_target in ${link_targets}
 ${link_target}: ${main_target}
 	@mkdir -p ${.TARGET:H}
 	ln ${.ALLSRC} ${.TARGET}
 clean_link_target=${CLEAN_TARGET_PREFIX}${link_target}
 ${clean_link_target}:
-	rm -f ${.TARGET:C/^clean\///}
-	@rmdir -p ${.TARGET:H:C/^clean\///} 2>/dev/null || true
+	rm -f ${.TARGET:C/^${CLEAN_TARGET_PREFIX}//}
+	@rmdir -p ${.TARGET:H:C/^${CLEAN_TARGET_PREFIX}//} 2>/dev/null || true
 .endfor
 .endif
 
@@ -109,8 +128,8 @@ ${man_gz_target}: ${src_man}
 	${MANCOMPRESS} ${.ALLSRC} >${.TARGET}
 	@chmod ${MAN_MODE} ${.TARGET}
 ${clean_man_gz_target}:
-	rm -f ${.TARGET:C/^clean\///}
-	@rmdir -p ${.TARGET:H:C/^clean\///} 2>/dev/null || true
+	rm -f ${.TARGET:C/^${CLEAN_TARGET_PREFIX}//}
+	@rmdir -p ${.TARGET:H:C/^${CLEAN_TARGET_PREFIX}//} 2>/dev/null || true
 .endif
 
 SHARE_SRCS=
@@ -121,7 +140,7 @@ share_targets=
 clean_share_targets=
 .if ${SHARE_SRCS}
 share_targets=${SHARE_SRCS:T:C/^/${PREFIX}\/${SHAREDIR}\/${SHARE_SUBDIR}\//}
-clean_share_targets=${share_targets:C/^/clean\//}
+clean_share_targets=${share_targets:C/^/${CLEAN_TARGET_PREFIX}/}
 .for share_src in ${SHARE_SRCS}
 share_src_base=${share_src:T}
 share_target=${PREFIX}/${SHAREDIR}/${SHARE_SUBDIR}/${share_src_base}
@@ -131,8 +150,8 @@ ${share_target}: ${share_src}
 	cp ${.ALLSRC} ${.TARGET}
 	chmod ${SHARE_MODE} ${.TARGET}
 ${clean_share_target}:
-	rm -f ${.TARGET:C/^clean\///}
-	@rmdir -p ${.TARGET:H:C/^clean\///} 2>/dev/null || true
+	rm -f ${.TARGET:C/^${CLEAN_TARGET_PREFIX}//}
+	@rmdir -p ${.TARGET:H:C/^${CLEAN_TARGET_PREFIX}//} 2>/dev/null || true
 .endfor
 .endif
 
@@ -145,10 +164,13 @@ ${clean_src_handle}: ${clean_main_target} ${clean_link_targets} ${clean_man_gz_t
     ${clean_share_targets}
 .endfor
 
-all_clean_targets=${all_handles:C/^/clean\//}
-.PHONY: clean
-clean: ${all_clean_targets}
-
 bin_target_handles=${BIN_SRCS:R}
-.PHONY: ${BIN_SRC_DIR}
-${BIN_SRC_DIR}: ${bin_target_handles}
+.PHONY: ${BIN_TARGET}
+${BIN_TARGET}: ${bin_target_handles}
+bin_dir_clean_target_handle=${CLEAN_TARGET_PREFIX}${BIN_TARGET}
+bin_clean_targets=${bin_target_handles:C/^/${CLEAN_TARGET_PREFIX}/}
+.PHONY: ${bin_dir_clean_target_handle}
+${bin_dir_clean_target_handle}: ${bin_clean_targets}
+
+.PHONY: ${CLEAN_TARGET}
+${CLEAN_TARGET}: ${libexec_dir_clean_target_handle} ${bin_dir_clean_target_handle}
