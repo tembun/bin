@@ -41,6 +41,8 @@ MANCOMPRESS= gzip -cn
 SHAREDIR= share
 SHARE_MODE= 0444
 
+CLEAN_TARGET_PREFIX=clean/
+
 LINKS_ren= normalize
 LINKS_src= dsrc ksrc lsrc
 
@@ -74,7 +76,7 @@ ${main_target}: ${src_file}
 	@mkdir -p ${.TARGET:H}
 	cp ${.ALLSRC} ${.TARGET}
 	chmod ${BIN_MODE} ${.TARGET}
-clean_main_target=clean/${main_target}
+clean_main_target=${CLEAN_TARGET_PREFIX}${main_target}
 ${clean_main_target}:
 	rm -f ${.TARGET:C/^clean\///}
 	@rmdir -p ${.TARGET:H:C/^clean\///} 2>/dev/null || true
@@ -88,7 +90,7 @@ clean_link_targets=${link_targets:C/^/clean\//}
 ${link_target}: ${main_target}
 	@mkdir -p ${.TARGET:H}
 	ln ${.ALLSRC} ${.TARGET}
-clean_link_target=clean/${link_target}
+clean_link_target=${CLEAN_TARGET_PREFIX}${link_target}
 ${clean_link_target}:
 	rm -f ${.TARGET:C/^clean\///}
 	@rmdir -p ${.TARGET:H:C/^clean\///} 2>/dev/null || true
@@ -102,7 +104,7 @@ clean_man_gz_target=
 .if ${is_dir} == "1" && exists(${src_man})
 ${man_gz_target}: ${src_man}
 	man_gz_target=${PREFIX}/${MANDIR}/${src_base}.1.gz
-	clean_man_gz_target=clean/${man_gz_target}
+	clean_man_gz_target=${CLEAN_TARGET_PREFIX}${man_gz_target}
 	@mkdir -p $$(dirname ${.TARGET})
 	${MANCOMPRESS} ${.ALLSRC} >${.TARGET}
 	@chmod ${MAN_MODE} ${.TARGET}
@@ -123,7 +125,7 @@ clean_share_targets=${share_targets:C/^/clean\//}
 .for share_src in ${SHARE_SRCS}
 share_src_base=${share_src:T}
 share_target=${PREFIX}/${SHAREDIR}/${SHARE_SUBDIR}/${share_src_base}
-clean_share_target=clean/${share_target}
+clean_share_target=${CLEAN_TARGET_PREFIX}${share_target}
 ${share_target}: ${share_src}
 	@mkdir -p ${.TARGET:H}
 	cp ${.ALLSRC} ${.TARGET}
@@ -137,7 +139,7 @@ ${clean_share_target}:
 .PHONY: ${src_handle}
 ${src_handle}: ${main_target} ${link_targets} ${man_gz_target} ${share_targets}
 
-clean_src_handle=clean/${src_handle}
+clean_src_handle=${CLEAN_TARGET_PREFIX}${src_handle}
 .PHONY: ${clean_src_handle}
 ${clean_src_handle}: ${clean_main_target} ${clean_link_targets} ${clean_man_gz_target}\
     ${clean_share_targets}
