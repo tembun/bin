@@ -27,10 +27,9 @@
 #
 
 LIBEXEC_SRC_DIR= libexec
-SUBR= subr.sh
-SUBR_SRC= ${LIBEXEC_SRC_DIR}/${SUBR}
-SRCS_DIR= bin
-SRCS:sh= find ${SRCS_DIR} -mindepth 1 -maxdepth 1
+LIBEXEC_SRCS:sh = find ${LIBEXEC_SRC_DIR} -type f
+BIN_SRC_DIR= bin
+BIN_SRCS:sh= find ${BIN_SRC_DIR} -mindepth 1 -maxdepth 1
 PREFIX= /usr/local
 BINDIR= bin
 BIN_MODE= 0755
@@ -49,18 +48,24 @@ INSTALL_MODE_OPT= -m
 LINKS_ren= normalize
 LINKS_src= dsrc ksrc lsrc
 
-subr_handle=${SUBR_SRC:C/\.[^.]*$//}
-all_handles=${SRCS:C/\.[^.]*$//}
-all: ${subr_handle} ${all_handles}
+all: ${LIBEXEC_SRC_DIR} ${BIN_SRC_DIR}
 
-subr_target=${PREFIX}/${LIBEXECDIR}/${SUBR}
-${subr_target}: ${SUBR_SRC}
+.for libexec_src in ${LIBEXEC_SRCS}
+libexec_target=${PREFIX}/${libexec_src:C/${LIBEXEC_SRC_DIR}/${LIBEXECDIR}/}
+${libexec_target}: ${libexec_src}
 	@mkdir -p ${.TARGET:H}
-	${INSTALL} ${INSTALL_MODE_OPT} ${LIBEXEC_MODE} ${.ALLSRC} ${.TARGET}
+	cp ${.ALLSRC} ${.TARGET}
+	chmod ${LIBEXEC_MODE} ${.TARGET}
 
-.PHONY: ${subr_handle}
-${subr_handle}: ${subr_target}
-.for src in ${SRCS}
+libexec_target_handle=${libexec_src:R}
+.PHONY: ${libexec_target_handle}
+${libexec_target_handle}: ${libexec_target}
+.endfor
+libexec_targets=${LIBEXEC_SRCS:R}
+.PHONY: ${LIBEXEC_SRC_DIR}
+${LIBEXEC_SRC_DIR}: ${libexec_targets}
+
+.for src in ${BIN_SRCS}
 src_file=${src}
 is_dir:sh= test -d ${src} && echo "1" || echo "0"
 .if ${is_dir} == "1"
@@ -144,3 +149,7 @@ ${clean_src_handle}: ${clean_main_target} ${clean_link_targets} ${clean_man_gz_t
 all_clean_targets=${all_handles:C/^/clean\//}
 .PHONY: clean
 clean: ${all_clean_targets}
+
+bin_target_handles=${BIN_SRCS:R}
+.PHONY: ${BIN_SRC_DIR}
+${BIN_SRC_DIR}: ${bin_target_handles}
