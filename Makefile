@@ -11,16 +11,16 @@
 # for this script to work/be installed properly) in a custom file hierarchy.
 # This makefile automatically handles this kind of files for nested directories:
 #     Makefile -	it can be used in order to define additional variables
-#               	for installing custom files.
+#			for installing custom files.
 #     *.1 -		man(1) page for a script.  Installed automatically, no
-#          		configuration needed.
+#			configuration needed.
 # As said, a nested makefile is used for setting variables that will help to
 # automatically install custom files that are not .sh or .1 files.
 # As for now, the only option is to install such files in $PREFIX/share (and
 # optionally, in nested directory there).  For this there are variables:
 #     SHARE_SRCS -	files that should be installed in $PREFIX/share.
 #     SHARE_SUBDIR -	(optionally) a subdirectory inside $PREFIX/share, where
-#                   	SHARE_SRCS will be installed.
+#			SHARE_SRCS will be installed.
 # Note: if a nested makefile wants to use a path, relative to its own location
 # (i.e. a nested directory itself), it should set and further use a variable:
 #     PARSEDIR= ${.PARSEDIR:tA}
