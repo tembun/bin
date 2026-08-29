@@ -40,10 +40,6 @@ MAN_MODE= 0644
 MANCOMPRESS= gzip -cn
 SHAREDIR= share
 SHARE_MODE= 0444
-# XXX install(1) is not POSIX
-INSTALL= install
-INSTALL_LINK_OPT= -l h
-INSTALL_MODE_OPT= -m
 
 LINKS_ren= normalize
 LINKS_src= dsrc ksrc lsrc
@@ -76,7 +72,8 @@ src_base:sh= basename ${src_handle}
 main_target=${PREFIX}/${BINDIR}/${src_base}
 ${main_target}: ${src_file}
 	@mkdir -p ${.TARGET:H}
-	${INSTALL} ${INSTALL_MODE_OPT} ${BIN_MODE} ${.ALLSRC} ${.TARGET}
+	cp ${.ALLSRC} ${.TARGET}
+	chmod ${BIN_MODE} ${.TARGET}
 clean_main_target=clean/${main_target}
 ${clean_main_target}:
 	rm -f ${.TARGET:C/^clean\///}
@@ -90,8 +87,7 @@ clean_link_targets=${link_targets:C/^/clean\//}
 .for link_target in ${link_targets}
 ${link_target}: ${main_target}
 	@mkdir -p ${.TARGET:H}
-	${INSTALL} ${INSTALL_LINK_OPT} ${INSTALL_MODE_OPT} ${BIN_MODE}\
-	    ${.ALLSRC} ${.TARGET}
+	ln ${.ALLSRC} ${.TARGET}
 clean_link_target=clean/${link_target}
 ${clean_link_target}:
 	rm -f ${.TARGET:C/^clean\///}
@@ -130,7 +126,8 @@ share_target=${PREFIX}/${SHAREDIR}/${SHARE_SUBDIR}/${share_src_base}
 clean_share_target=clean/${share_target}
 ${share_target}: ${share_src}
 	@mkdir -p ${.TARGET:H}
-	${INSTALL} ${INSTALL_MODE_OPT} ${SHARE_MODE} ${.ALLSRC} ${.TARGET}
+	cp ${.ALLSRC} ${.TARGET}
+	chmod ${SHARE_MODE} ${.TARGET}
 ${clean_share_target}:
 	rm -f ${.TARGET:C/^clean\///}
 	@rmdir -p ${.TARGET:H:C/^clean\///} 2>/dev/null || true
