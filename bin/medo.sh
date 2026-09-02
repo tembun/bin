@@ -318,7 +318,7 @@ strip__do_strip()
 	local tmp_prefix=$(mktemp -u "XXXXXXXX")
 	local tmp_name="$TMP_DIR/$tmp_prefix.$(basename -- "$file")"
 	local backup_ext="$bak_ext"
-	ffmpeg -loglevel 8 -i "$file" -map 0:a -c:a copy -map_metadata -1 \
+	ffmpeg -loglevel 8 -i "$file" -c copy -map_metadata -1 \
 	    -map_chapters -1 "$tmp_name" >/dev/null
 	if [ $? -eq 0 ]; then
 		[ $bak_opt -eq 1 ] && backup_ext="$bak_ext"
