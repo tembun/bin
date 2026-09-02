@@ -22,7 +22,7 @@ search_in_reserved_dirs()
 	local existing_movie_dirs=$(check_dir -op "${MOVIE_DIRS}")
 	test -n "${existing_movie_dirs}" || return 0
 	# Options that will be passed to find(1) to perform a search
-	local find_opts=$(printf "${@}" |sed "s/.*/\\( -name & \\) -or/")
+	local find_opts=$(printf "${@}" |sed "s/.*/\\( -path *\/& \\) -or/")
 	# Remove trailing '-or' operator
 	find_opts=$(join "${find_opts}" |sed "s/-or$//")
 	find ${existing_movie_dirs} -type f ${find_opts} |head -n 1
