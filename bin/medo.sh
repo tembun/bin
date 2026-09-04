@@ -315,11 +315,17 @@ strip__usage()
 strip__do_strip()
 {
 	local file="$1"
+	local audio_special_opt=""
+	if echo "${file}" |grep -Eq "\.(mp3|ogg)$"; then
+		# If it's the audio file, leave only an audio stream.  This will
+		# remove all images (e.g. covers) from the file.
+		audio_special_opt="-map 0:a"
+	fi
 	local tmp_prefix=$(mktemp -u "XXXXXXXX")
 	local tmp_name="$TMP_DIR/$tmp_prefix.$(basename -- "$file")"
 	local backup_ext="$bak_ext"
-	ffmpeg -loglevel 8 -i "$file" -c copy -map_metadata -1 \
-	    -map_chapters -1 "$tmp_name" >/dev/null
+	ffmpeg -loglevel 8 -i "${file}" ${audio_special_opt} -c copy \
+	    -map_metadata -1 -map_chapters -1 "${tmp_name}" >/dev/null
 	if [ $? -eq 0 ]; then
 		[ $bak_opt -eq 1 ] && backup_ext="$bak_ext"
 		if [ -n "$backup_ext" ]; then
