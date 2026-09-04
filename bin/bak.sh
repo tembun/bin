@@ -16,9 +16,9 @@
 #     <\t><\t>		file-3
 #     <\t><\t>		...
 #     <\t>	out:
-#     <\t><\t>		/tmp/backup.txz	(Optional)
+#     <\t><\t>		/tmp/backup.tzst	(Optional)
 #     <\t>	compress:
-#     <\t><\t>		'xz' (default) | 'none'
+#     <\t><\t>		'zstd' (default) | 'xz' | 'none'
 #     <\t>	root:			(Optional)
 #     <\t><\t>		1
 #     <\n>
@@ -42,7 +42,7 @@
 # A special substring `$DATE(<args>)' may be used, which will be substituted to
 # the date(1) output, to which `args' were passed as format specifiers.  Refer
 # to strftime(3) for a full list of possible format specifiers.
-# If `out' is omitted, then `/tmp/bak/<strategy>_$DATE(%y-%m-%d_%H-%M-%S).txz'
+# If `out' is omitted, then `/tmp/bak/<strategy>_$DATE(%y-%m-%d_%H-%M-%S).tzst'
 # will be used.
 #
 # `compress' names a compression algorithm to be used with tar(1).  If no
@@ -76,7 +76,7 @@ CFG_FILES="$CFG_FILE_SYS $CFG_FILE_USER"
 CFG_FILES_FMT=$(echo "$CFG_FILES" |sed 's/ /,&/g')
 : ${TMPDIR:="/tmp"}
 DEFAULT_BAK_DIR="${TMPDIR}/${progname}"
-DEFAULT_BAK_EXT="txz"
+DEFAULT_BAK_EXT=".tzst"
 
 #=============== General-purpose functions ===============
 warn()
@@ -133,9 +133,10 @@ GLOBAL_PROP_EXCLUDE_ALL="exclude_all"
 STRAT_PROP_INCLUDE="include"
 STRAT_PROP_EXCLUDE="exclude"
 STRAT_PROP_COMPRESS="compress"
+STRAT_PROP_COMPRESS_ZSTD="zstd"
 STRAT_PROP_COMPRESS_XZ="xz"
 STRAT_PROP_COMPRESS_NONE="none"
-STRAT_PROP_COMPRESS_DEFAULT="${STRAT_PROP_COMPRESS_XZ}"
+STRAT_PROP_COMPRESS_DEFAULT="${STRAT_PROP_COMPRESS_ZSTD}"
 STRAT_PROP_OUT="out"
 STRAT_PROP_ROOT="root"
 VAR_HOME="HOME"
@@ -145,7 +146,7 @@ VAR_OUT_DATE="DATE"
 get_strat_default_out()
 {
 	local date_str=$(date +%y-%m-%d_%H-%M-%S)
-	echo "${DEFAULT_BAK_DIR}/${1}_${date_str}.${DEFAULT_BAK_EXT}"
+	echo "${DEFAULT_BAK_DIR}/${1}_${date_str}${DEFAULT_BAK_EXT}"
 }
 
 # parse_cfg_files cfg_files
@@ -274,7 +275,9 @@ validate_compress()
 {
 	local compress="${1}"
 	case "${compress}" in
-	"${STRAT_PROP_COMPRESS_XZ}"|"${STRAT_PROP_COMPRESS_NONE}")	;;
+	"${STRAT_PROP_COMPRESS_ZSTD}"|\
+	"${STRAT_PROP_COMPRESS_XZ}"|\
+	"${STRAT_PROP_COMPRESS_NONE}")	;;
 	*)	err "Unknown 'compress' value: ${compress}" ;;
 	esac
 }
@@ -300,6 +303,7 @@ tar_format_compress()
 	local compress="${1}"
 	local opt
 	case "${compress}" in
+	"${STRAT_PROP_COMPRESS_ZSTD}")	opt="--zstd" ;;
 	"${STRAT_PROP_COMPRESS_XZ}")	opt="-J" ;;
 	"${STRAT_PROP_COMPRESS_NONE}")	opt="" ;;
 	esac
