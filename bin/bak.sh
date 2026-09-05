@@ -77,6 +77,7 @@ CFG_FILES_FMT=$(echo "$CFG_FILES" |sed 's/ /,&/g')
 : ${TMPDIR:="/tmp"}
 DEFAULT_BAK_DIR="${TMPDIR}/${progname}"
 DEFAULT_BAK_EXT=".tzst"
+TAR="tar"
 
 #=============== General-purpose functions ===============
 warn()
@@ -334,7 +335,7 @@ do_bak()
 	local include_cmd="${2}"
 	local exclude_cmd="${3}"
 	local compress_cmd="${4}"
-	time tar ${exclude_cmd} ${compress_cmd} -cvf "${out}" ${include_cmd}
+	time "${TAR}" ${exclude_cmd} ${compress_cmd} -cvf "${out}" ${include_cmd}
 }
 
 abort_handler() {
