@@ -304,7 +304,7 @@ tar_format_compress()
 	local compress="${1}"
 	local opt
 	case "${compress}" in
-	"${STRAT_PROP_COMPRESS_ZSTD}")	opt="--zstd" ;;
+	"${STRAT_PROP_COMPRESS_ZSTD}")	opt='--zstd --options=zstd:compression-level=22,zstd:threads=0' ;;
 	"${STRAT_PROP_COMPRESS_XZ}")	opt="-J" ;;
 	"${STRAT_PROP_COMPRESS_NONE}")	opt="" ;;
 	esac
