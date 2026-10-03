@@ -11,14 +11,14 @@ COOKIES_BROWSER="firefox"
 PROXY="127.0.0.1"
 PROXY_PORT="10808"
 
-define_usage "[-CP] [-o output_name] [-t format] URL"
+define_usage "[-Cp] [-o output_name] [-t format] URL"
 
-OPTS="CPo:t:"
+OPTS="Co:pt:"
 handle_opts()
 {
 	case "${o}" in
 	C)	set_flag no_cookies ;;
-	P)	set_flag no_proxy ;;
+	p)	set_flag proxy ;;
 	o)	output="${OPTARG}" ;;
 	t)	target="${OPTARG}" ;;
 	?)	usage ;;
@@ -31,7 +31,7 @@ test "${#}" -eq 1 || usage
 url="${1}"
 test -z "${output}" || out_opt="-o ${output}"
 test -z "${target}" || target_opt="-t ${target}"
-check_flag "${no_proxy}" || proxy_opt="--proxy socks5://${PROXY}:${PROXY_PORT}"
+! check_flag "${proxy}" || proxy_opt="--proxy socks5://${PROXY}:${PROXY_PORT}"
 check_flag "${no_cookies}" || cookies_opt="--cookies-from-browser ${COOKIES_BROWSER}"
 extra_opts="${proxy_opt} ${cookies_opt} ${target_opt} ${out_opt}"
 "${YTDLP}" ${extra_opts} "${url}"
