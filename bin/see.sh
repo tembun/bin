@@ -9,6 +9,7 @@
 
 PLAYER="mpv"
 PLAYER_SUB_FILE_OPT="--sub-file"
+PLAYER_SUB_DELAY_OPT="--sub-delay"
 PLAYER_NO_SUBS_BY_DEFAULT_OPT="--no-sub-visibility"
 SUB_EXT="srt"
 SUB_SUFFIX=".${SUB_EXT}"
@@ -17,7 +18,7 @@ MOVIE_DIRS_DEFAULT="${HOME}/flm ${HOME}/tmp"
 _MOVIE_EXTS="mp4 mkv avi mov"	# Lowercase versions of such
 MOVIE_EXTS="${_MOVIE_EXTS} $(upper "${_MOVIE_EXTS}")"
 
-define_usage "file"
+define_usage "[-d sub_delay] file"
 
 # search_in_reserved_dirs candidate_files
 search_in_reserved_dirs()
@@ -31,6 +32,15 @@ search_in_reserved_dirs()
 	find ${existing_movie_dirs} -type f ${find_opts} |head -n 1
 }
 
+OPTS="d:"
+handle_opts() {
+	case "${1}" in
+	d)	Sub_delay="${OPTARG}" ;;
+	?)	usage ;;
+	esac
+}
+
+eval "${HANDLE_OPTS_EVAL}"
 test ${#} -eq 1 || usage
 file="${1}"
 # If specified file is not found, then we try to make our 'smart' search.
@@ -67,6 +77,7 @@ if ! check_file "${file}"; then
 fi
 sub_file="$(dirname "${file}")/$(get_filename "${file}")${SUB_SUFFIX}"
 pushto player_opts "${PLAYER_NO_SUBS_BY_DEFAULT_OPT}"
+test -n "${Sub_delay}" && pushto player_opts "${PLAYER_SUB_DELAY_OPT}=${Sub_delay}"
 check_file "${sub_file}" && pushto player_opts "${PLAYER_SUB_FILE_OPT}=${sub_file}"
 ensure_prog "${PLAYER}"
 "${PLAYER}" ${player_opts} "${file}"
