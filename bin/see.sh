@@ -16,6 +16,8 @@ MOVIE_DIRS_DEFAULT="${HOME}/flm ${HOME}/tmp"
 _MOVIE_EXTS="mp4 mkv avi mov"	# Lowercase versions of such
 MOVIE_EXTS="${_MOVIE_EXTS} $(upper "${_MOVIE_EXTS}")"
 
+define_usage "file"
+
 # search_in_reserved_dirs candidate_files
 search_in_reserved_dirs()
 {
@@ -28,7 +30,6 @@ search_in_reserved_dirs()
 	find ${existing_movie_dirs} -type f ${find_opts} |head -n 1
 }
 
-define_usage "file"
 test ${#} -eq 1 || usage
 file="${1}"
 # If specified file is not found, then we try to make our 'smart' search.
