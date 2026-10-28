@@ -2,6 +2,7 @@
 
 #
 # see -- watch a movie (with subtitles, if possible).
+# TODO: make use of complete_abbrev() for movie names.
 #
 
 . "$(dirname $(readlink -f "${0}"))/../libexec/subr.sh"
