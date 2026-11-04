@@ -94,6 +94,8 @@ do_rec()
 	    ${aud_opt} \
 	    -crf 23 \
 	    -vcodec libx264 \
+	    -pix_fmt yuv420p \
+	    -profile:v main \
 	    -preset fast \
 	    "${out}"
 }
